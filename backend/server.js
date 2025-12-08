@@ -11,6 +11,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use("/uploads", express.static("uploads"));
+app.use("/api/pyq", require("./routes/pyqRoutes"));
+
 // Test route
 app.get("/", (req, res) => {
   res.send("CampusConnect Backend Running");
