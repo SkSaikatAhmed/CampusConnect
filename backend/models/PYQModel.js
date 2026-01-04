@@ -1,41 +1,27 @@
 const mongoose = require("mongoose");
 
-const pyqSchema = new mongoose.Schema({
-  department: {
-    type: String,
-    required: true,
-    enum: [
-      "CSE",
-      "ECE",
-      "EE",
-      "ME",
-      "CE",
-      "Math",
-      "Physics",
-      "Chemistry",
-    ],
+const pyqSchema = new mongoose.Schema(
+  {
+    program: String,
+    department: String,
+    branch: String, // null for non-MTECH
+    subject: String,
+    semester: Number,
+    year: Number,
+    fileUrl: String,
+
+    uploadedBy: {
+      type: String,
+      enum: ["ADMIN", "STUDENT"],
+    },
+
+    status: {
+      type: String,
+      enum: ["PENDING", "APPROVED", "REJECTED"],
+      default: "PENDING",
+    },
   },
-  course: {
-    type: String,
-    required: true,
-    enum: ["B.Tech", "M.Tech", "M.Sc"],
-  },
-  subject: { 
-    type: String, 
-    required: true 
-  },
-  year: { 
-    type: Number, 
-    required: true 
-  },
-  fileUrl: { 
-    type: String, 
-    required: true 
-  },
-  uploadedAt: { 
-    type: Date, 
-    default: Date.now 
-  },
-});
+  { timestamps: true }
+);
 
 module.exports = mongoose.model("PYQ", pyqSchema);

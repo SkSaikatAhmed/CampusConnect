@@ -13,6 +13,8 @@ app.use(express.json());
 
 app.use("/uploads", express.static("uploads"));
 app.use("/api/pyq", require("./routes/pyqRoutes"));
+app.use("/api/meta", require("./routes/metaRoutes"));
+//app.use("/api/auth", require("./routes/authRoutes"));
 
 // Test route
 app.get("/", (req, res) => {
