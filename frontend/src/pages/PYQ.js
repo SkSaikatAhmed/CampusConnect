@@ -1,193 +1,104 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Link } from "react-router-dom";
 
-const PYQ = () => {
-  const [department, setDepartment] = useState("");
-  const [course, setCourse] = useState("");
-  const [subject, setSubject] = useState("");
-  const [year, setYear] = useState("");
-  const [file, setFile] = useState(null);
 
+const API = "http://localhost:5000";
+
+function PYQ() {
+  const [programs, setPrograms] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+
+  const [filters, setFilters] = useState({});
   const [pyqs, setPyqs] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const API_URL = "http://127.0.0.1:5000";
-
-  // Course options based on department
-  const courseOptions = {
-    CSE: ["B.Tech", "M.Tech"],
-    ECE: ["B.Tech", "M.Tech"],
-    EE: ["B.Tech", "M.Tech"],
-    ME: ["B.Tech", "M.Tech"],
-    CE: ["B.Tech", "M.Tech"],
-    Math: ["M.Sc"],
-    Physics: ["M.Sc"],
-    Chemistry: ["M.Sc"],
-  };
-
-  // Fetch PYQs
-  const getPYQs = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/pyq/get`);
-      const data = await res.json();
-      setPyqs(data);
-    } catch (err) {
-      console.error("GET ERROR:", err);
-    }
-  };
 
   useEffect(() => {
-    getPYQs();
+    axios.get(`${API}/api/meta/PROGRAM`).then(r => setPrograms(r.data));
+    axios.get(`${API}/api/meta/DEPARTMENT`).then(r => setDepartments(r.data));
+    axios.get(`${API}/api/meta/SUBJECT`).then(r => setSubjects(r.data));
   }, []);
 
-  // Upload PYQ
-  const handleUpload = async (e) => {
-    e.preventDefault();
-
-    if (!department || !course || !subject || !year || !file) {
-      alert("Please fill all fields");
-      return;
+  useEffect(() => {
+    if (filters.program === "MTECH" && filters.department) {
+      axios.get(`${API}/api/meta/BRANCH`, {
+        params: { program: "MTECH", department: filters.department }
+      }).then(r => setBranches(r.data));
+    } else {
+      setBranches([]);
     }
+  }, [filters.program, filters.department]);
 
-    const formData = new FormData();
-    formData.append("department", department);
-    formData.append("course", course);
-    formData.append("subject", subject);
-    formData.append("year", year);
-    formData.append("file", file);
-
-    setLoading(true);
-
-    try {
-      const res = await fetch(`${API_URL}/api/pyq/upload`, {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-      setLoading(false);
-
-      if (data.message === "PYQ uploaded successfully!") {
-        alert("Uploaded Successfully!");
-
-        // Reset form
-        setDepartment("");
-        setCourse("");
-        setSubject("");
-        setYear("");
-        setFile(null);
-
-        getPYQs();
-      } else {
-        alert("Upload failed");
-      }
-    } catch (err) {
-      setLoading(false);
-      alert("Error uploading PYQ");
-      console.error("UPLOAD ERROR:", err);
-    }
+  const fetchPYQs = async () => {
+    const res = await axios.get(`${API}/api/pyq/filter`, { params: filters });
+    setPyqs(res.data);
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-100">
-      <h1 className="text-3xl font-bold mb-4">Upload PYQ</h1>
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Previous Year Questions</h2>
 
-      {/* Upload Form */}
-      <form
-        onSubmit={handleUpload}
-        className="bg-white p-6 rounded-lg shadow-lg max-w-md"
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <select onChange={e => setFilters({ ...filters, program: e.target.value })}>
+          <option value="">Program</option>
+          {programs.map(p => <option key={p._id} value={p.value}>{p.value}</option>)}
+        </select>
+
+        <select onChange={e => setFilters({ ...filters, department: e.target.value })}>
+          <option value="">Department</option>
+          {departments.map(d => <option key={d._id} value={d.value}>{d.value}</option>)}
+        </select>
+
+        {filters.program === "MTECH" && (
+          <select onChange={e => setFilters({ ...filters, branch: e.target.value })}>
+            <option value="">Branch</option>
+            {branches.map(b => <option key={b._id} value={b.value}>{b.value}</option>)}
+          </select>
+        )}
+
+        <select onChange={e => setFilters({ ...filters, subject: e.target.value })}>
+          <option value="">Subject</option>
+          {subjects.map(s => <option key={s._id} value={s.value}>{s.value}</option>)}
+        </select>
+
+        <select onChange={e => setFilters({ ...filters, semester: e.target.value })}>
+          <option value="">Semester</option>
+          {[...Array(10)].map((_, i) => (
+            <option key={i + 1} value={i + 1}>{i + 1}</option>
+          ))}
+        </select>
+      </div>
+      <div className="flex justify-between items-center mb-4">
+  <h2 className="text-2xl font-bold">Previous Year Questions</h2>
+
+  <Link
+    to="/pyq/upload"
+    className="bg-green-600 text-white px-4 py-2 rounded"
+  >
+    Upload PYQ
+  </Link>
+</div>
+
+
+      <button
+        onClick={fetchPYQs}
+        className="mb-6 bg-blue-600 text-white px-4 py-2 rounded"
       >
+        Apply Filter
+      </button>
 
-        {/* Department */}
-        <label className="block mb-2">Department</label>
-        <select
-          className="w-full p-2 border rounded mb-3"
-          value={department}
-          onChange={(e) => {
-            setDepartment(e.target.value);
-            setCourse(""); // reset course on dept change
-          }}
-        >
-          <option value="">Select Department</option>
-          <option value="CSE">CSE</option>
-          <option value="ECE">ECE</option>
-          <option value="EE">EE</option>
-          <option value="ME">ME</option>
-          <option value="CE">CE</option>
-          <option value="Math">Math</option>
-          <option value="Physics">Physics</option>
-          <option value="Chemistry">Chemistry</option>
-        </select>
-
-        {/* Course */}
-        <label className="block mb-2">Course</label>
-        <select
-          className="w-full p-2 border rounded mb-3"
-          value={course}
-          onChange={(e) => setCourse(e.target.value)}
-          disabled={!department}
-        >
-          <option value="">Select Course</option>
-          {department &&
-            courseOptions[department].map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-        </select>
-
-        {/* Subject */}
-        <label className="block mb-2">Subject</label>
-        <input
-          className="w-full p-2 border rounded mb-3"
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-          placeholder="Enter subject"
-        />
-
-        {/* Year */}
-        <label className="block mb-2">Year</label>
-        <input
-          className="w-full p-2 border rounded mb-3"
-          value={year}
-          onChange={(e) => setYear(e.target.value)}
-          type="number"
-          placeholder="Enter year"
-        />
-
-        {/* PDF File */}
-        <label className="block mb-2">Upload PDF</label>
-        <input
-          type="file"
-          accept="application/pdf"
-          className="w-full mb-3"
-          onChange={(e) => setFile(e.target.files[0])}
-        />
-
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
-          disabled={loading}
-        >
-          {loading ? "Uploading..." : "Upload PYQ"}
-        </button>
-      </form>
-
-      {/* PYQ List */}
-      <h2 className="text-2xl font-semibold mt-8 mb-4">All PYQs</h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {pyqs.map((pyq) => (
-          <div key={pyq._id} className="bg-white p-4 shadow rounded">
-            <h3 className="font-bold">{pyq.subject}</h3>
-            <p>Department: {pyq.department}</p>
-            <p>Course: {pyq.course}</p>
-            <p>Year: {pyq.year}</p>
-
+      <div className="grid md:grid-cols-3 gap-4">
+        {pyqs.map(p => (
+          <div key={p._id} className="p-4 bg-white shadow rounded">
+            <h3 className="font-bold">{p.subject}</h3>
+            <p>{p.program} - {p.department}</p>
+            <p>Year: {p.year} | Sem: {p.semester}</p>
             <a
-              href={`${API_URL}${pyq.fileUrl}`}
+              href={`${API}${p.fileUrl}`}
               target="_blank"
               rel="noreferrer"
-              className="text-blue-500 underline mt-2 inline-block"
+              className="text-blue-500 underline"
             >
               View PDF
             </a>
@@ -196,6 +107,6 @@ const PYQ = () => {
       </div>
     </div>
   );
-};
+}
 
 export default PYQ;
