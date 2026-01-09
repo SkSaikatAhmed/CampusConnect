@@ -3,7 +3,7 @@ import axios from "axios";
 
 const API = "http://localhost:5000";
 
-function UploadPYQ() {
+function AdminUpload({ type }) {
   const [programs, setPrograms] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [branches, setBranches] = useState([]);
@@ -20,7 +20,6 @@ function UploadPYQ() {
 
   const [file, setFile] = useState(null);
 
-  // add-new states
   const [showAdd, setShowAdd] = useState({
     program: false,
     department: false,
@@ -39,11 +38,9 @@ function UploadPYQ() {
 
   useEffect(() => {
     if (form.program === "MTECH" && form.department) {
-      axios
-        .get(`${API}/api/meta/BRANCH`, {
-          params: { program: "MTECH", department: form.department },
-        })
-        .then(r => setBranches(r.data));
+      axios.get(`${API}/api/meta/BRANCH`, {
+        params: { program: "MTECH", department: form.department },
+      }).then(r => setBranches(r.data));
     } else {
       setBranches([]);
       setForm(f => ({ ...f, branch: "" }));
@@ -51,52 +48,63 @@ function UploadPYQ() {
   }, [form.program, form.department]);
 
   /* ---------- ADD META ---------- */
-  const addMeta = async (type, extra = {}) => {
-    if (!newValue) return;
+  const addMeta = async (metaType, extra = {}) => {
+    if (!newValue.trim()) return;
 
     await axios.post(`${API}/api/meta`, {
-      type,
-      value: newValue,
+      type: metaType,
+      value: newValue.trim(),
       ...extra,
     });
 
-    const res = await axios.get(`${API}/api/meta/${type}`, {
+    const res = await axios.get(`${API}/api/meta/${metaType}`, {
       params: extra,
     });
 
-    if (type === "PROGRAM") setPrograms(res.data);
-    if (type === "DEPARTMENT") setDepartments(res.data);
-    if (type === "SUBJECT") setSubjects(res.data);
-    if (type === "BRANCH") setBranches(res.data);
+    if (metaType === "PROGRAM") setPrograms(res.data);
+    if (metaType === "DEPARTMENT") setDepartments(res.data);
+    if (metaType === "SUBJECT") setSubjects(res.data);
+    if (metaType === "BRANCH") setBranches(res.data);
 
     setNewValue("");
-    setShowAdd({ ...showAdd, [type.toLowerCase()]: false });
+    setShowAdd({ ...showAdd, [metaType.toLowerCase()]: false });
   };
 
   /* ---------- SUBMIT ---------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!file) {
-      alert("PDF required");
-      return;
-    }
+    if (!file) return alert("PDF required");
 
     const data = new FormData();
     Object.keys(form).forEach(k => data.append(k, form[k]));
     data.append("file", file);
 
-    await axios.post(`${API}/api/pyq/upload`, data);
-    alert("PYQ Uploaded Successfully");
+    await axios.post(`${API}/api/${type}/upload`, data);
+
+    alert(`${type.toUpperCase()} uploaded successfully`);
+
+    setForm({
+      program: "",
+      department: "",
+      branch: "",
+      subject: "",
+      semester: "",
+      year: "",
+    });
+    setFile(null);
   };
 
   return (
     <form onSubmit={handleSubmit} className="p-6 max-w-xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4">Admin Upload PYQ</h2>
+      <h2 className="text-2xl font-bold mb-4">
+        Admin Upload {type.toUpperCase()}
+      </h2>
 
       {/* PROGRAM */}
       <select
         required
+        value={form.program}
         onChange={e =>
           e.target.value === "__add__"
             ? setShowAdd({ ...showAdd, program: true })
@@ -120,6 +128,7 @@ function UploadPYQ() {
       {/* DEPARTMENT */}
       <select
         required
+        value={form.department}
         onChange={e =>
           e.target.value === "__add__"
             ? setShowAdd({ ...showAdd, department: true })
@@ -140,11 +149,12 @@ function UploadPYQ() {
         </>
       )}
 
-      {/* BRANCH (MTECH ONLY) */}
+      {/* BRANCH (MTECH) */}
       {form.program === "MTECH" && (
         <>
           <select
             required
+            value={form.branch}
             onChange={e =>
               e.target.value === "__add__"
                 ? setShowAdd({ ...showAdd, branch: true })
@@ -180,6 +190,7 @@ function UploadPYQ() {
       {/* SUBJECT */}
       <select
         required
+        value={form.subject}
         onChange={e =>
           e.target.value === "__add__"
             ? setShowAdd({ ...showAdd, subject: true })
@@ -201,7 +212,11 @@ function UploadPYQ() {
       )}
 
       {/* SEMESTER */}
-      <select required onChange={e => setForm({ ...form, semester: e.target.value })}>
+      <select
+        required
+        value={form.semester}
+        onChange={e => setForm({ ...form, semester: e.target.value })}
+      >
         <option value="">Select Semester</option>
         {[...Array(10)].map((_, i) => (
           <option key={i + 1} value={i + 1}>{i + 1}</option>
@@ -213,17 +228,23 @@ function UploadPYQ() {
         type="number"
         placeholder="Year"
         required
+        value={form.year}
         onChange={e => setForm({ ...form, year: e.target.value })}
       />
 
       {/* FILE */}
-      <input type="file" accept="application/pdf" required onChange={e => setFile(e.target.files[0])} />
+      <input
+        type="file"
+        accept="application/pdf"
+        required
+        onChange={e => setFile(e.target.files[0])}
+      />
 
       <button className="mt-4 bg-blue-600 text-white px-4 py-2 rounded">
-        Upload PYQ
+        Upload {type.toUpperCase()}
       </button>
     </form>
   );
 }
 
-export default UploadPYQ;
+export default AdminUpload;

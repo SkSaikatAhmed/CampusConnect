@@ -18,6 +18,24 @@ function AdminDashboard() {
           Review Student Uploads
         </Link>
       </div>
+      <Link to="/admin/upload-notes" className="p-6 bg-indigo-500 text-white rounded shadow" >
+        Upload Notes
+      </Link>
+
+<Link
+  to="/admin/manage-notes"
+  className="p-6 bg-teal-500 text-white rounded shadow"
+>
+  Manage Notes
+</Link>
+
+<Link
+  to="/admin/review-notes"
+  className="p-6 bg-orange-500 text-white rounded shadow"
+>
+  Review Notes Uploads
+</Link>
+      
     </div>
   );
 }
