@@ -1,7 +1,8 @@
 const User = require("../models/UserModel");
-const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
+// ================= REGISTER =================
 exports.registerStudent = async (req, res) => {
   try {
     const {
@@ -28,20 +29,14 @@ exports.registerStudent = async (req, res) => {
         .json({ message: "Email or Registration No already exists" });
     }
 
-    if (program === "MTECH" && !branch) {
-      return res
-        .status(400)
-        .json({ message: "Branch required for MTECH" });
-    }
-
-    const user = await User.create({
+    await User.create({
       name,
       email,
-      password,
+      password, // ❗ DO NOT HASH HERE
       registrationNo,
       program,
       department,
-      branch: program === "MTECH" ? branch : null,
+      branch,
       profilePhoto: req.file
         ? `/uploads/profile/${req.file.filename}`
         : null,
@@ -54,3 +49,36 @@ exports.registerStudent = async (req, res) => {
     res.status(500).json({ message: "Registration failed" });
   }
 };
+
+// ================= LOGIN =================
+exports.login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user || user.isBanned) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    return res.json({
+      token,
+      role: user.role,
+      name: user.name,
+    });
+  } catch (err) {
+    console.error("LOGIN ERROR:", err);
+    return res.status(500).json({ message: "Login failed" });
+  }
+};
+

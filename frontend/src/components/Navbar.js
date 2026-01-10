@@ -1,7 +1,15 @@
+// frontend/src/components/Navbar.js
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom"; // Added useLocation
 
 function Navbar() {
+  const location = useLocation();
+  
+  // Don't show navbar on admin routes
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
+
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">

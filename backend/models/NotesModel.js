@@ -1,27 +1,29 @@
 const mongoose = require("mongoose");
 
-const notesSchema = new mongoose.Schema(
-  {
-    program: String,
-    department: String,
-    branch: String, // null for non-MTECH
-    subject: String,
-    semester: Number,
-    year: Number,
-    fileUrl: String,
+const notesSchema = new mongoose.Schema({
+  subject: String,
+  program: String,
+  department: String,
+  semester: Number,
+  year: Number,
+  fileUrl: String,
 
-    uploadedBy: {
-      type: String,
-      enum: ["ADMIN", "STUDENT"],
-    },
-
-    status: {
-      type: String,
-      enum: ["PENDING", "APPROVED", "REJECTED"],
-      default: "PENDING",
-    },
+  status: {
+    type: String,
+    enum: ["PENDING", "APPROVED", "REJECTED"],
+    default: "PENDING"
   },
-  { timestamps: true }
-);
+  
 
-module.exports = mongoose.model("NOTES", notesSchema);
+  rejectionReason: {
+    type: String,
+    default: ""
+  },
+
+  uploadedAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+module.exports = mongoose.model("Notes", notesSchema);

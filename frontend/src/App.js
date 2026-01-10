@@ -1,11 +1,13 @@
+// frontend/src/App.js
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
+import AdminLayout from './components/AdminLayout';
 
 import Home from "./pages/Home";
 import FacultyReview from "./pages/FacultyReview";
 import Notes from "./pages/Notes";
-import UploadNotes from "./pages/UploadNotes"; // STUDENT
+import UploadNotes from "./pages/UploadNotes";
 import PYQ from "./pages/PYQ";
 import AIQuestionGenerator from "./pages/AIQuestionGenerator";
 
@@ -13,11 +15,16 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageContent from "./pages/admin/ManageContent";
 import PendingPYQ from "./pages/admin/PendingPYQ";
 import AdminUpload from "./pages/admin/AdminUpload";
+import PendingNotes from "./pages/admin/PendingNotes";
+import ManageNotes from "./pages/admin/ManageNotes";
 
 import StudentUpload from "./pages/StudentUpload";
 
-import PendingNotes from "./pages/admin/PendingNotes";
-import ManageNotes from "./pages/admin/ManageNotes";
+import PrivateRoute from "./routes/PrivateRoute";
+import AdminRoute from "./routes/AdminRoute";
+
+import Login from "./pages/Login";
+import StudentRegister from "./pages/StudentRegister";
 
 import "./App.css";
 
@@ -29,29 +36,86 @@ function App() {
       <Routes>
         {/* -------- PUBLIC ROUTES -------- */}
         <Route path="/" element={<Home />} />
-        <Route path="/notes" element={<Notes />} />
-        <Route path="/reviews" element={<FacultyReview />} />
-        <Route path="/ai" element={<AIQuestionGenerator />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<StudentRegister />} />
 
-        {/* -------- STUDENT ROUTES -------- */}
-        <Route path="/pyq" element={<PYQ />} />
-        <Route path="/pyq/upload" element={<StudentUpload />} />
-        <Route path="/notes/upload" element={<UploadNotes />} />
+        {/* -------- STUDENT ROUTES (LOGIN REQUIRED) -------- */}
+        <Route
+          path="/pyq"
+          element={
+            <PrivateRoute>
+              <PYQ />
+            </PrivateRoute>
+          }
+        />
 
-        {/* -------- ADMIN ROUTES -------- */}
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route
+          path="/pyq/upload"
+          element={
+            <PrivateRoute>
+              <StudentUpload />
+            </PrivateRoute>
+          }
+        />
 
-        {/* ADMIN UPLOAD (REFACTORED) */}
-        <Route path="/admin/upload-pyq" element={<AdminUpload type="pyq" />} />
-        <Route path="/admin/upload-notes" element={<AdminUpload type="notes" />} />
+        <Route
+          path="/notes/upload"
+          element={
+            <PrivateRoute>
+              <UploadNotes />
+            </PrivateRoute>
+          }
+        />
+        
+        <Route
+          path="/notes"
+          element={
+            <PrivateRoute>
+              <Notes />
+            </PrivateRoute>
+          }
+        />
 
-        {/* ADMIN REVIEW */}
-        <Route path="/admin/review-requests" element={<PendingPYQ />} />
-        <Route path="/admin/review-notes" element={<PendingNotes />} />
+        <Route
+          path="/reviews"
+          element={
+            <PrivateRoute>
+              <FacultyReview />
+            </PrivateRoute>
+          }
+        />
 
-        {/* ADMIN MANAGE */}
-        <Route path="/admin/manage" element={<ManageContent />} />
-        <Route path="/admin/manage-notes" element={<ManageNotes />} />
+        <Route
+          path="/ai"
+          element={
+            <PrivateRoute>
+              <AIQuestionGenerator />
+            </PrivateRoute>
+          }
+        />
+
+        {/* -------- ADMIN ROUTES (ADMIN / SUPER ADMIN ONLY) -------- */}
+        {/* Wrap all admin routes inside AdminLayout */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }
+        >
+          {/* These routes will be rendered inside AdminLayout's Outlet */}
+          <Route index element={<AdminDashboard />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="upload-pyq" element={<AdminUpload type="pyq" />} />
+          <Route path="upload-notes" element={<AdminUpload type="notes" />} />
+          <Route path="review-requests" element={<PendingPYQ />} />
+          <Route path="review-notes" element={<PendingNotes />} />
+          <Route path="manage" element={<ManageContent />} />
+          <Route path="manage-notes" element={<ManageNotes />} />
+        </Route>
+
+        {/* Remove these old separate admin routes since they're now nested */}
       </Routes>
     </BrowserRouter>
   );

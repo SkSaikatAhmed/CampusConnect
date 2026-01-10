@@ -10,7 +10,33 @@ const {
 router.post("/upload", upload.single("file"), uploadNotes);
 router.post("/student-upload", upload.single("file"), studentUploadNotes);
 router.get("/get", getAllNotes);
-
+// ADMIN – Pending Notes
+router.get("/pending", async (req, res) => {
+    const NOTES = require("../models/NotesModel");
+    const data = await NOTES.find({ status: "PENDING" }).sort({ createdAt: -1 });
+    res.json(data);
+  });
+  
+  // ADMIN – Approve Notes
+  router.put("/approve/:id", async (req, res) => {
+    const NOTES = require("../models/NotesModel");
+    await NOTES.findByIdAndUpdate(req.params.id, {
+      status: "APPROVED",
+      rejectionReason: null,
+    });
+    res.json({ message: "Approved" });
+  });
+  
+  // ADMIN – Reject Notes
+  router.put("/reject/:id", async (req, res) => {
+    const NOTES = require("../models/NotesModel");
+    await NOTES.findByIdAndUpdate(req.params.id, {
+      status: "REJECTED",
+      rejectionReason: req.body.reason || "Not suitable",
+    });
+    res.json({ message: "Rejected" });
+  });
+  
 router.get("/filter", async (req, res) => {
   const NOTES = require("../models/NotesModel");
   const query = { status: "APPROVED" };

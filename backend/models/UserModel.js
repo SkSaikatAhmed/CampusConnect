@@ -27,10 +27,14 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["ADMIN", "STUDENT"],
+      enum: ["SUPER_ADMIN", "ADMIN", "STUDENT"],
       default: "STUDENT",
     },
 
+    isBanned: {
+      type: Boolean,
+      default: false,
+    },
     // Optional academic info
     program: {
       type: String,
