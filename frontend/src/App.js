@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
+import Profile from './components/Profile';
 import AdminLayout from './components/AdminLayout';
 
 import Home from "./pages/Home";
@@ -9,6 +10,7 @@ import FacultyReview from "./pages/FacultyReview";
 import Notes from "./pages/Notes";
 import UploadNotes from "./pages/UploadNotes";
 import PYQ from "./pages/PYQ";
+
 import AIQuestionGenerator from "./pages/AIQuestionGenerator";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -93,6 +95,15 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          }
+        />
+
 
         {/* -------- ADMIN ROUTES (ADMIN / SUPER ADMIN ONLY) -------- */}
         {/* Wrap all admin routes inside AdminLayout */}

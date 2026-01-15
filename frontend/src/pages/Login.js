@@ -21,6 +21,7 @@ function Login() {
       // Save auth data
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
+      
       localStorage.setItem("name", res.data.name);
 
       // Redirect based on role
