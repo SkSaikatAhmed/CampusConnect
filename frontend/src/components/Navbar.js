@@ -25,31 +25,45 @@ function Navbar() {
   const [loading, setLoading] = useState(true);
 
   // Function to get user from localStorage
-  const getUserFromStorage = () => {
-    try {
-      const storedUser = localStorage.getItem("user");
-      const token = localStorage.getItem("token");
+const getUserFromStorage = () => {
+  try {
+    const storedUser = localStorage.getItem("user");
+    const token = localStorage.getItem("token");
+    
+    if (token) {
+      let userData;
       
-      if (token && storedUser) {
-        const userData = JSON.parse(storedUser);
-        return {
-          name: userData.name || "Student",
-          email: userData.email || "",
-          profilePicture: userData.profilePhoto || null,
-          department: userData.department || "Not specified",
-          semester: userData.semester || "Not specified",
-          registrationNo: userData.registrationNo || "",
-          program: userData.program || "",
-          role: userData.role || "STUDENT",
-          isBanned: userData.isBanned || false
+      // Check if user data is stored as JSON string
+      if (storedUser) {
+        userData = JSON.parse(storedUser);
+      } else {
+        // Fallback to individual localStorage items (for backward compatibility)
+        userData = {
+          name: localStorage.getItem("name") || "Student",
+          email: "", // Email might not be stored separately
+          role: localStorage.getItem("role") || "STUDENT",
+          token: token
         };
       }
-      return null;
-    } catch (error) {
-      console.error("Error parsing user data:", error);
-      return null;
+      
+      return {
+        name: userData.name || "Student",
+        email: userData.email || "",
+        profilePicture: userData.profilePhoto || null,
+        department: userData.department || "Not specified",
+        semester: userData.semester || "Not specified",
+        registrationNo: userData.registrationNo || "",
+        program: userData.program || "",
+        role: userData.role || "STUDENT",
+        isBanned: userData.isBanned || false
+      };
     }
-  };
+    return null;
+  } catch (error) {
+    console.error("Error parsing user data:", error);
+    return null;
+  }
+};
 
   // Load user data
   useEffect(() => {
@@ -102,18 +116,22 @@ function Navbar() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // Handle logout
   const handleLogout = () => {
+    // 1. Clear auth state FIRST
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new Event("userStateChange"));
-    
+  
+    // 2. Update local React state
     setUser(null);
     setProfileDropdown(false);
-    navigate("/login");
+  
+    // 3. Notify other components (Navbar, guards, etc.)
+    window.dispatchEvent(new Event("userStateChange"));
+  
+    // 4. Now navigate
+    navigate("/login", { replace: true });
   };
+  
 
   // Don't show navbar on admin routes
   if (location.pathname.startsWith('/admin')) {

@@ -37,11 +37,21 @@ function App() {
 
       <Routes>
         {/* -------- PUBLIC ROUTES -------- */}
-        <Route path="/" element={<Home />} />
+        
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<StudentRegister />} />
 
         {/* -------- STUDENT ROUTES (LOGIN REQUIRED) -------- */}
+
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <Home />
+            </PrivateRoute>
+          }
+        />
+
         <Route
           path="/pyq"
           element={

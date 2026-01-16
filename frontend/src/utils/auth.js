@@ -2,8 +2,16 @@ export const isLoggedIn = () => {
   return !!localStorage.getItem("token");
 };
 
+export const getUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("user"));
+  } catch {
+    return null;
+  }
+};
+
 export const getRole = () => {
-  return localStorage.getItem("role");
+  return getUser()?.role || null;
 };
 
 export const isAdmin = () => {
@@ -16,6 +24,7 @@ export const isSuperAdmin = () => {
 };
 
 export const logout = () => {
-  localStorage.clear();
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
   window.location.href = "/login";
 };
