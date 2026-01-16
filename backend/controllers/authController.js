@@ -73,12 +73,31 @@ exports.login = async (req, res) => {
 
     return res.json({
       token,
-      role: user.role,
-      name: user.name,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        registrationNo: user.registrationNo,
+        program: user.program,
+        department: user.department,
+        branch: user.branch,
+        profilePhoto: user.profilePhoto,
+        createdAt: user.createdAt,
+        isBanned: user.isBanned,
+      },
     });
+    
   } catch (err) {
     console.error("LOGIN ERROR:", err);
     return res.status(500).json({ message: "Login failed" });
   }
 };
 
+exports.getMe = async (req, res) => {
+  try {
+    res.json(req.user); // already populated by middleware
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch profile" });
+  }
+};

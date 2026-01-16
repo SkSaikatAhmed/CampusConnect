@@ -3,6 +3,7 @@ const router = express.Router();
 
 const authController = require("../controllers/authController");
 const profileUpload = require("../middleware/profileUpload");
+const { protect } = require("../middleware/authMiddleware");
 
 // Student registration
 router.post(
@@ -13,5 +14,7 @@ router.post(
 
 // Login
 router.post("/login", authController.login);
+router.get("/me", protect, authController.getMe);
 
 module.exports = router;
+

@@ -99,6 +99,7 @@ exports.studentUploadPYQ = async (req, res) => {
       fileUrl: `/uploads/pyq/${req.file.filename}`,
       uploadedBy: "STUDENT",
       status: "PENDING",
+      createdBy: req.user._id, 
     });
 
     res.json({

@@ -22,7 +22,7 @@ import {
   Phone
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import axios from "../api";
 
 function Profile() {
   const navigate = useNavigate();
@@ -45,70 +45,60 @@ function Profile() {
 
   const fetchUserData = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const storedUser = localStorage.getItem("user");
-      
-      if (token && storedUser) {
-        const userData = JSON.parse(storedUser);
-        
-        // DEBUG: Log the user data to see what's available
-        console.log("User data from localStorage:", userData);
-        
-        // Format the user data properly with proper fallbacks
-        const formattedUser = {
-          name: userData.name || "Student",
-          email: userData.email || "",
-          profilePicture: userData.profilePhoto || userData.profilePicture || null,
-          department: userData.department || "Not specified",
-          branch: userData.branch || "",
-          program: userData.program || "Not specified",
-          registrationNo: userData.registrationNo || "Not provided",
-          semester: userData.semester || "",
-          phone: userData.phone || "",
-          location: userData.location || "",
-          bio: userData.bio || `Welcome to my CampusConnect profile! I'm a ${userData.department || ""} student passionate about sharing knowledge and resources with fellow students.`,
-          joinedDate: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString('en-US', {
-            month: 'long',
-            year: 'numeric'
-          }) : new Date().toLocaleDateString('en-US', {
-            month: 'long',
-            year: 'numeric'
-          }),
-          role: userData.role || "STUDENT",
-          isBanned: userData.isBanned || false
-        };
-        
-        console.log("Formatted user data:", formattedUser);
-        
-        setUser(formattedUser);
-        setEditedUser(formattedUser);
-      } else {
-        navigate("/login");
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
+      const res = await axios.get("/api/auth/me");
+  
+      const u = res.data;
+  
+      const formattedUser = {
+        name: u.name,
+        email: u.email,
+        registrationNo: u.registrationNo,
+        department: u.department,
+        branch: u.branch || "",
+        program: u.program,
+        profilePicture: u.profilePhoto || null,
+        joinedDate: new Date(u.createdAt).toLocaleDateString("en-US", {
+          month: "long",
+          year: "numeric",
+        }),
+        role: u.role,
+        isBanned: u.isBanned || false,
+        bio:
+          u.bio ||
+          `Welcome to my CampusConnect profile! I'm a ${u.department} student.`,
+        phone: u.phone || "",
+        location: u.location || "",
+      };
+  
+      setUser(formattedUser);
+      setEditedUser(formattedUser);
+    } catch (err) {
+      console.error("Profile fetch failed", err);
       navigate("/login");
     } finally {
       setLoading(false);
     }
   };
+  
 
   const fetchUserStats = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (token) {
-        // Mock API calls - replace with actual API endpoints
-        setStats({
-          notesShared: Math.floor(Math.random() * 50),
-          pyqsUploaded: Math.floor(Math.random() * 30),
-          reviewsPosted: Math.floor(Math.random() * 40),
-          aiQueries: Math.floor(Math.random() * 200)
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching stats:", error);
+      const [notesRes, pyqRes] = await Promise.all([
+        axios.get("/api/notes/my/count"),
+        axios.get("/api/pyq/my/count"),
+      ]);
+  
+      setStats({
+        notesShared: notesRes.data.count,
+        pyqsUploaded: pyqRes.data.count,
+        reviewsPosted: 0, // add later when review module is ready
+        aiQueries: 0,     // add later if AI usage tracking exists
+      });
+    } catch (err) {
+      console.error("Stats fetch failed", err);
     }
   };
+  
 
   const handleSave = async () => {
     try {
@@ -167,7 +157,10 @@ function Profile() {
       // Update localStorage
       const storedUser = JSON.parse(localStorage.getItem("user"));
       storedUser.profilePhoto = imageUrl;
-      localStorage.setItem("user", JSON.stringify(storedUser));
+      setUser(editedUser);
+      setIsEditing(false);
+      alert("Profile updated locally. Backend save can be added next.");
+
       
       alert("Profile picture updated successfully!");
     } catch (error) {

@@ -240,6 +240,10 @@ function PendingNotes() {
                             </div>
                           </div>
                           <div className="flex flex-wrap gap-2 mt-3">
+                            <span className="px-3 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-full">
+                                Uploaded by: <b>{n.createdBy?.name}</b> ({n.createdBy?.registrationNo})
+                            </span>
+
                             <span className="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                               {n.program}
                             </span>
@@ -348,6 +352,21 @@ function PendingNotes() {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Submission Details</label>
+                        <div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Uploaded By
+  </label>
+  <div className="text-gray-900 font-medium">
+    {selectedItem.createdBy?.name}
+  </div>
+  <div className="text-sm text-gray-600">
+    Registration No: {selectedItem.createdBy?.registrationNo}
+  </div>
+  <div className="text-sm text-gray-500">
+    Email: {selectedItem.createdBy?.email}
+  </div>
+</div>
+
                         <div className="space-y-2 text-gray-600">
                           <div className="flex items-center">
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

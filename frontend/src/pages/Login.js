@@ -11,53 +11,39 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
+  
     try {
       const res = await axios.post("/api/auth/login", {
         email,
         password,
       });
-
-      // Save auth data
+  
+      // 1. Save token
       localStorage.setItem("token", res.data.token);
-      
-      // Create complete user object with all available data
-      const userData = {
-        name: res.data.name || "",
-        email: res.data.email || email,
-        role: res.data.role || "STUDENT",
-        registrationNo: res.data.registrationNo || "",
-        department: res.data.department || "",
-        program: res.data.program || "",
-        branch: res.data.branch || "",
-        profilePhoto: res.data.profilePhoto || null,
-        isBanned: res.data.isBanned || false,
-        // Add timestamps if available
-        createdAt: res.data.createdAt || new Date().toISOString(),
-      };
-      
-      localStorage.setItem("user", JSON.stringify(userData));
-
-      // Dispatch event to notify navbar about user state change
+  
+      // 2. Save full user object (IMPORTANT)
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+  
+      // 3. Notify app
       window.dispatchEvent(new Event("userStateChange"));
-
-      // Check user role for redirection - FIXED
-      const userRole = res.data.role?.toUpperCase();
+  
+      // 4. Role-based redirect (FIXED)
+      const userRole = res.data.user.role.toUpperCase();
       console.log("User role after login:", userRole);
-      
+  
       if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
         navigate("/admin", { replace: true });
-
       } else {
-        navigate("/pyq");
+        navigate("/", { replace: true });
       }
-      
+  
     } catch (err) {
       alert("Invalid email or password");
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-blue-100 p-4">

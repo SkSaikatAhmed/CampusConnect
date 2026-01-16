@@ -55,6 +55,7 @@ exports.studentUploadNotes = async (req, res) => {
       fileUrl: `/uploads/notes/${req.file.filename}`,
       uploadedBy: "STUDENT",
       status: "PENDING",
+      createdBy: req.user._id, 
     });
 
     res.json({ message: "Uploaded. Awaiting approval." });
