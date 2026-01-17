@@ -14,17 +14,19 @@ exports.uploadNotes = async (req, res) => {
     if (program === "MTECH" && !branch)
       return res.status(400).json({ message: "Branch required for MTECH" });
 
-    const notes = await NOTES.create({
-      program,
-      department,
-      branch: program === "MTECH" ? branch : null,
-      subject,
-      semester,
-      year,
-      fileUrl: `/uploads/notes/${req.file.filename}`,
-      uploadedBy: "ADMIN",
-      status: "APPROVED",
-    });
+      const notes = await NOTES.create({
+        program,
+        department,
+        branch: program === "MTECH" ? branch : null,
+        subject,
+        semester,
+        year,
+        fileUrl: `/uploads/notes/${req.file.filename}`,
+        uploadedBy: "ADMIN",
+        status: "APPROVED",
+        createdBy: req.user?._id || null, 
+      });
+      
 
     res.json({ message: "Notes uploaded", notes });
   } catch (err) {
@@ -40,26 +42,35 @@ exports.getAllNotes = async (req, res) => {
 
 /* STUDENT UPLOAD */
 exports.studentUploadNotes = async (req, res) => {
-  try {
-    const { program, department, branch, subject, semester, year } = req.body;
-
-    if (!req.file) return res.status(400).json({ message: "PDF required" });
-
-    const notes = await NOTES.create({
-      program,
-      department,
-      branch: program === "MTECH" ? branch : null,
-      subject,
-      semester,
-      year,
-      fileUrl: `/uploads/notes/${req.file.filename}`,
-      uploadedBy: "STUDENT",
-      status: "PENDING",
-      createdBy: req.user._id, 
-    });
-
-    res.json({ message: "Uploaded. Awaiting approval." });
-  } catch (err) {
-    res.status(500).json({ message: "Upload failed" });
-  }
-};
+    try {
+      const { program, department, branch, subject, semester, year } = req.body;
+  
+      if (!req.file)
+        return res.status(400).json({ message: "PDF required" });
+  
+      if (!program || !department || !subject || !semester || !year)
+        return res.status(400).json({ message: "All fields required" });
+  
+      if (program === "MTECH" && !branch)
+        return res.status(400).json({ message: "Branch required for MTECH" });
+  
+      const notes = await NOTES.create({
+        program,
+        department,
+        branch: program === "MTECH" ? branch : null,
+        subject,
+        semester,
+        year,
+        fileUrl: `/uploads/notes/${req.file.filename}`,
+        uploadedBy: "STUDENT",
+        status: "PENDING",
+        createdBy: req.user._id,
+      });
+  
+      res.json({ message: "Uploaded. Awaiting approval." });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Upload failed" });
+    }
+  };
+  

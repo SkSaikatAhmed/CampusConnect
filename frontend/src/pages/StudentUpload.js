@@ -238,8 +238,24 @@ function UploadPYQ() {
       Object.keys(form).forEach(k => data.append(k, form[k]));
       data.append("file", file);
 
-      await axios.post(`${API}/api/pyq/student-upload`, data);
-      
+      const token = localStorage.getItem("token");
+
+if (!token) {
+  alert("Please login to upload PYQ");
+  return;
+}
+
+await axios.post(
+  `${API}/api/pyq/student-upload`,
+  data,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
+
+            
       setUploadSuccess(true);
       
       // Reset form after successful upload

@@ -244,7 +244,7 @@ const getUserFromStorage = () => {
                       </div>
                     ) : user && user.profilePicture ? (
                       <img 
-                        src={user.profilePicture} 
+                        src={`http://localhost:5000${user.profilePicture}`}
                         alt={user.name}
                         className="h-full w-full object-cover"
                       />
@@ -276,7 +276,7 @@ const getUserFromStorage = () => {
                             <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 overflow-hidden">
                               {user.profilePicture ? (
                                 <img 
-                                  src={user.profilePicture} 
+                                  src={`http://localhost:5000${user.profilePicture}`}
                                   alt={user.name}
                                   className="h-full w-full object-cover"
                                 />

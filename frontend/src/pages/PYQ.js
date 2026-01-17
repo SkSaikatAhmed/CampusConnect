@@ -648,26 +648,29 @@ function PYQ() {
 
                         {/* Action Buttons */}
                         <div className="flex space-x-3">
-                          <a
-                            href={`${API}${p.fileUrl}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex-1"
-                          >
-                            <Button variant="outline" className="w-full">
-                              <Eye className="h-4 w-4 mr-2" />
-                              Preview
-                            </Button>
-                          </a>
-                          <button
-                            onClick={() => handleDownload(p.fileUrl, p.subject)}
-                            className="flex-1"
-                          >
-                            <Button className="w-full">
-                              <Download className="h-4 w-4 mr-2" />
-                              Download
-                            </Button>
-                          </button>
+                        <a
+  href={`${API}${p.fileUrl}`}
+  target="_blank"
+  rel="noreferrer"
+  className="flex-1"
+>
+  <span className="block">
+    <Button variant="outline" className="w-full">
+      <Eye className="h-4 w-4 mr-2" />
+      Preview
+    </Button>
+  </span>
+</a>
+
+<Button
+  className="flex-1 w-full"
+  onClick={() => handleDownload(p.fileUrl, p.subject)}
+>
+  <Download className="h-4 w-4 mr-2" />
+  Download
+</Button>
+
+
                         </div>
 
                         {/* Quick Stats */}

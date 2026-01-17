@@ -667,26 +667,28 @@ function Notes() {
 
                         {/* Action Buttons */}
                         <div className="flex space-x-3">
-                          <a
-                            href={`${API}${n.fileUrl}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex-1"
-                          >
-                            <Button variant="outline" className="w-full">
-                              <Eye className="h-4 w-4 mr-2" />
-                              Preview
-                            </Button>
-                          </a>
-                          <button
-                            onClick={() => handleDownload(n.fileUrl, n.subject)}
-                            className="flex-1"
-                          >
-                            <Button className="w-full">
-                              <Download className="h-4 w-4 mr-2" />
-                              Download
-                            </Button>
-                          </button>
+                        <a
+  href={`${API}${n.fileUrl}`}
+  target="_blank"
+  rel="noreferrer"
+  className="flex-1"
+>
+  <span className="block">
+    <Button variant="outline" className="w-full">
+      <Eye className="h-4 w-4 mr-2" />
+      Preview
+    </Button>
+  </span>
+</a>
+
+<Button
+  className="flex-1 w-full"
+  onClick={() => handleDownload(n.fileUrl, n.subject)}
+>
+  <Download className="h-4 w-4 mr-2" />
+  Download
+</Button>
+
                         </div>
 
                         {/* Quick Stats */}

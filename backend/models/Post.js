@@ -10,7 +10,7 @@ const postSchema = new mongoose.Schema(
 
     content: {
       type: String,
-      required: true,
+     // required: true,
     },
 
     category: {
@@ -35,13 +35,18 @@ const postSchema = new mongoose.Schema(
     link: {
       type: String, // external link (publicly visible)
     },
-
-    likes: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+    image: {
+        type: String, // image file path
       },
-    ],
+      
+
+      reactions: {
+        like: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+        love: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+        sad: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+        angry: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+      },
+      
 
     commentsCount: {
       type: Number,

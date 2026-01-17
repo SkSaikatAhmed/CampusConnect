@@ -130,44 +130,62 @@ function Profile() {
   const handleProfilePictureUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert("Please upload an image file");
+  
+    if (!file.type.startsWith("image/")) {
+      alert("Only images allowed");
       return;
     }
-    
+  
     if (file.size > 5 * 1024 * 1024) {
       alert("File size must be less than 5MB");
       return;
     }
-
+  
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Please login again");
+      return;
+    }
+  
     try {
-      const imageUrl = URL.createObjectURL(file);
-      
+      const formData = new FormData();
+      formData.append("photo", file);
+  
+      const res = await axios.put(
+        "/api/auth/profile-photo",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
       const updatedUser = {
         ...user,
-        profilePicture: imageUrl
+        profilePicture: res.data.profilePhoto,
       };
-      
+  
       setUser(updatedUser);
-      if (editedUser) {
-        setEditedUser(updatedUser);
-      }
-      
-      // Update localStorage
+      setEditedUser(updatedUser);
+  
       const storedUser = JSON.parse(localStorage.getItem("user"));
-      storedUser.profilePhoto = imageUrl;
-      setUser(editedUser);
-      setIsEditing(false);
-      alert("Profile updated locally. Backend save can be added next.");
-
-      
-      alert("Profile picture updated successfully!");
+      storedUser.profilePhoto = res.data.profilePhoto;
+      localStorage.setItem("user", JSON.stringify(storedUser));
+  
+      window.dispatchEvent(new Event("userStateChange"));
+  
+      alert("Profile picture updated successfully");
     } catch (error) {
-      console.error("Error uploading profile picture:", error);
-      alert("Failed to upload profile picture");
+      console.error("Profile upload failed", error);
+      alert("Profile picture upload failed");
     }
   };
+  
+      
+      
+
+
 
   if (loading) {
     return (
@@ -251,10 +269,11 @@ function Profile() {
                   <div className="h-32 w-32 rounded-full border-4 border-white/30 bg-gradient-to-br from-blue-400 to-purple-500 overflow-hidden shadow-2xl">
                     {user.profilePicture ? (
                       <img 
-                        src={user.profilePicture} 
-                        alt={user.name}
-                        className="h-full w-full object-cover"
-                      />
+                      src={`http://localhost:5000${user.profilePicture}`}
+                      alt={user.name}
+                      className="h-full w-full object-cover"
+                    />
+                    
                     ) : (
                       <div className="h-full w-full flex items-center justify-center">
                         <span className="text-white text-4xl font-bold">
@@ -635,7 +654,7 @@ function Profile() {
       </div>
 
       {/* Add these styles for animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes blob {
           0% {
             transform: translate(0px, 0px) scale(1);

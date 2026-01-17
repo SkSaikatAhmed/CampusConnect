@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const { protect } = require("../middleware/authMiddleware");
+const uploadPostImage = require("../middleware/postUpload");
+const { reactPost } = require("../controllers/postController");
+
 const {
   getFeed,
   createPost,
@@ -8,9 +11,17 @@ const {
   sharePost,
 } = require("../controllers/postController");
 
-router.get("/", getFeed);              // public
-router.post("/", protect, createPost);
-router.post("/:id/like", protect, toggleLike);
+router.get("/", getFeed); // public
+
+// ✅ ONLY THIS CREATE ROUTE
+router.post(
+  "/",
+  protect,
+  uploadPostImage.single("image"),
+  createPost
+);
+
 router.post("/:id/share", protect, sharePost);
+router.post("/:id/react", protect, reactPost);
 
 module.exports = router;

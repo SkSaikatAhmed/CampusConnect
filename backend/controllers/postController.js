@@ -24,59 +24,91 @@ exports.getFeed = async (req, res) => {
  * 🔐 CREATE POST
  */
 exports.createPost = async (req, res) => {
-  try {
-    const { content, category, link } = req.body;
-
-    if (!content || !category) {
-      return res
-        .status(400)
-        .json({ message: "Content and category required" });
+    try {
+      const { content, category, link } = req.body;
+  
+      if (!category || (!content && !req.file)) {
+        return res
+          .status(400)
+          .json({ message: "Post must have text or image" });
+      }
+  
+      const post = new Post({
+        content,
+        category,
+        link,
+        author: req.user._id,
+        image: req.file ? `/uploads/posts/${req.file.filename}` : null,
+      });
+  
+      await post.save();
+  
+      res.json(post);
+    } catch (err) {
+      console.error("CREATE POST ERROR:", err);
+      res.status(500).json({ message: "Post creation failed" });
     }
-
-    const post = new Post({
-      content,
-      category,
-      link,
-      author: req.user._id,
-    });
-
-    await post.save();
-
-    res.json(post);
-  } catch (err) {
-    res.status(500).json({ message: "Post creation failed" });
-  }
-};
+  };
+  
 
 /**
  * ❤️ LIKE / UNLIKE (REAL-TIME)
  */
-exports.toggleLike = async (req, res) => {
-  try {
-    const userId = req.user._id.toString();
-    const post = await Post.findById(req.params.id);
-
-    if (!post) return res.status(404).json({ message: "Post not found" });
-
-    const index = post.likes.map(id => id.toString()).indexOf(userId);
-
-    if (index === -1) post.likes.push(userId);
-    else post.likes.splice(index, 1);
-
-    await post.save();
-
-    // 🔥 SOCKET.IO EVENT
-    const io = req.app.get("io");
-    io.emit("post-liked", {
-      postId: post._id,
-      likes: post.likes.length,
-    });
-
-    res.json({ likes: post.likes.length });
-  } catch (err) {
-    res.status(500).json({ message: "Like failed" });
-  }
-};
+/**
+ * 😍 MULTI REACTION (REAL-TIME)
+ */
+exports.reactPost = async (req, res) => {
+    try {
+      const { type } = req.body; // like | love | sad | angry
+      const userId = req.user._id.toString();
+      const post = await Post.findById(req.params.id);
+  
+      if (!post) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+  
+      const reactionTypes = ["like", "love", "sad", "angry"];
+      if (!reactionTypes.includes(type)) {
+        return res.status(400).json({ message: "Invalid reaction type" });
+      }
+  
+      // Remove user from ALL reactions first
+      reactionTypes.forEach((r) => {
+        post.reactions[r] = post.reactions[r].filter(
+          (id) => id.toString() !== userId
+        );
+      });
+  
+      // Toggle logic
+      const alreadyReacted = post.reactions[type].some(
+        (id) => id.toString() === userId
+      );
+  
+      if (!alreadyReacted) {
+        post.reactions[type].push(userId);
+      }
+  
+      await post.save();
+  
+      // 🔥 REAL-TIME UPDATE
+      const io = req.app.get("io");
+      io.emit("post-reacted", {
+        postId: post._id,
+        reactions: {
+          like: post.reactions.like.length,
+          love: post.reactions.love.length,
+          sad: post.reactions.sad.length,
+          angry: post.reactions.angry.length,
+        },
+      });
+  
+      res.json({ success: true });
+    } catch (err) {
+      console.error("REACTION ERROR:", err);
+      res.status(500).json({ message: "Reaction failed" });
+    }
+  };
+  
 
 /**
  * 🔁 SHARE COUNT (REAL-TIME)

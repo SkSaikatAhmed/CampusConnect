@@ -231,8 +231,18 @@ function UploadNotes() {
       }
       data.append("file", file);
 
-      await axios.post(`${API}/api/notes/student-upload`, data);
-      
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        `${API}/api/notes/student-upload`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+            
       setUploadSuccess(true);
       
       // Reset form after successful upload

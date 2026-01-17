@@ -32,6 +32,7 @@ const authHeaders = () => ({
 });
 
 function Home() {
+  const [image, setImage] = useState(null);
   const [posts, setPosts] = useState([]);
   const [category, setCategory] = useState("");
 
@@ -104,21 +105,27 @@ function Home() {
       alert("Login required");
       return;
     }
-
+  
+    const formData = new FormData();
+    formData.append("content", content);
+    formData.append("category", postCategory);
+  
+    if (link) formData.append("link", link);
+    if (image) formData.append("image", image);
+  
     await fetch(`${API}/posts`, {
       method: "POST",
-      headers: authHeaders(),
-      body: JSON.stringify({
-        content,
-        category: postCategory,
-        link,
-      }),
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: formData,
     });
-
+  
     setContent("");
     setLink("");
-    fetchPosts();
+    setImage(null);
   };
+  
 
   // ---------------- LIKE ----------------
   const likePost = async (postId) => {
@@ -183,6 +190,12 @@ function Home() {
           placeholder="What's on your mind?"
         />
         <input
+  type="file"
+  accept="image/*"
+  onChange={(e) => setImage(e.target.files[0])}
+/>
+
+        <input
           value={link}
           onChange={(e) => setLink(e.target.value)}
           placeholder="Optional link"
@@ -214,6 +227,14 @@ function Home() {
           <button onClick={() => loadComments(post._id)}>
             💬 {post.commentsCount}
           </button>
+          {post.image && (
+  <img
+    src={`http://localhost:5000${post.image}`}
+    alt="post"
+    style={{ maxWidth: "100%", marginTop: 10 }}
+  />
+)}
+
 
           {comments[post._id] && (
             <div>
