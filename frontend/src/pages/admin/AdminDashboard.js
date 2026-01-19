@@ -126,18 +126,31 @@ function AdminDashboard() {
 
   const fetchPendingData = async () => {
     try {
+      const token = localStorage.getItem("token");
+  
       const [pyqsRes, notesRes] = await Promise.all([
-        fetch(`${API}/api/pyq/pending`),
-        fetch(`${API}/api/notes/pending`)
+        fetch(`${API}/api/pyq/pending`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+        fetch(`${API}/api/notes/pending`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
       ]);
+  
       const pendingPYQs = await pyqsRes.json();
       const pendingNotes = await notesRes.json();
+  
       return { pendingPYQs, pendingNotes };
     } catch (error) {
       console.error("Error fetching pending data:", error);
       return { pendingPYQs: [], pendingNotes: [] };
     }
   };
+  
 
   const calculateStats = async () => {
     try {

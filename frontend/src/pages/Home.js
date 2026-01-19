@@ -25,9 +25,7 @@ const CATEGORIES = [
   "COMPETITION",
 ];
 
-// ---------- helper ----------
 const authHeaders = () => ({
-  "Content-Type": "application/json",
   Authorization: `Bearer ${localStorage.getItem("token")}`,
 });
 
@@ -43,7 +41,7 @@ function Home() {
   const [comments, setComments] = useState({});
   const [commentText, setCommentText] = useState({});
 
-  // ---------------- FETCH FEED (PUBLIC) ----------------
+  // ---------------- FETCH FEED ----------------
   const fetchPosts = async () => {
     const url = category
       ? `${API}/posts?category=${category}`
@@ -51,7 +49,35 @@ function Home() {
 
     const res = await fetch(url);
     const data = await res.json();
-    setPosts(data);
+
+    const userId = JSON.parse(atob(localStorage.getItem("token").split(".")[1])).id;
+
+const safePosts = data.map((p) => {
+  const reactionTypes = ["like", "love", "sad", "angry"];
+  let myReaction = null;
+
+  reactionTypes.forEach((r) => {
+    if (p.reactions?.[r]?.includes(userId)) {
+      myReaction = r;
+    }
+  });
+
+  return {
+    ...p,
+    reactions: {
+      like: p.reactions?.like?.length || 0,
+      love: p.reactions?.love?.length || 0,
+      sad: p.reactions?.sad?.length || 0,
+      angry: p.reactions?.angry?.length || 0,
+      myReaction,
+    },
+    shares: p.shares || 0,
+    commentsCount: p.commentsCount || 0,
+  };
+});
+
+
+    setPosts(safePosts);
   };
 
   useEffect(() => {
@@ -66,7 +92,6 @@ function Home() {
         [comment.post]: [...(prev[comment.post] || []), comment],
       }));
 
-      // update comment count
       setPosts((prev) =>
         prev.map((p) =>
           p._id === comment.post
@@ -76,13 +101,36 @@ function Home() {
       );
     });
 
-    socket.on("post-liked", ({ postId, likes }) => {
+    socket.on("post-reacted", ({ postId, reactions }) => {
+      const userId = JSON.parse(
+        atob(localStorage.getItem("token").split(".")[1])
+      ).id;
+    
       setPosts((prev) =>
-        prev.map((p) =>
-          p._id === postId ? { ...p, likes: Array(likes).fill(0) } : p
-        )
+        prev.map((p) => {
+          if (p._id !== postId) return p;
+    
+          // 🧠 recompute myReaction based on latest state
+          let myReaction = null;
+          for (const r of ["like", "love", "sad", "angry"]) {
+            if (p.reactions.myReaction === r && reactions[r] < p.reactions[r]) {
+              myReaction = null;
+            }
+          }
+    
+          return {
+            ...p,
+            reactions: {
+              ...p.reactions,
+              ...reactions,
+              myReaction,
+            },
+          };
+        })
       );
     });
+    
+    
 
     socket.on("post-shared", ({ postId, shares }) => {
       setPosts((prev) =>
@@ -94,7 +142,7 @@ function Home() {
 
     return () => {
       socket.off("new-comment");
-      socket.off("post-liked");
+      socket.off("post-reacted");
       socket.off("post-shared");
     };
   }, []);
@@ -105,50 +153,81 @@ function Home() {
       alert("Login required");
       return;
     }
-  
+
+    if (!content && !image) {
+      alert("Post must have text or image");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("content", content);
     formData.append("category", postCategory);
-  
     if (link) formData.append("link", link);
     if (image) formData.append("image", image);
-  
+
     await fetch(`${API}/posts`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
+      headers: authHeaders(),
       body: formData,
     });
-  
+
     setContent("");
     setLink("");
     setImage(null);
+
+    fetchPosts();
   };
-  
 
   // ---------------- LIKE ----------------
-  const likePost = async (postId) => {
+  const reactPost = async (postId, type) => {
     if (!localStorage.getItem("token")) {
       alert("Login required");
       return;
     }
-
-    await fetch(`${API}/posts/${postId}/like`, {
+  
+    const post = posts.find((p) => p._id === postId);
+  
+    // 🧠 If same reaction clicked again → REMOVE reaction
+    const reactionType =
+      post.reactions.myReaction === type ? null : type;
+  
+    await fetch(`${API}/posts/${postId}/react`, {
       method: "POST",
-      headers: authHeaders(),
+      headers: {
+        ...authHeaders(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ type: reactionType }),
     });
   };
+  
+  
 
   // ---------------- SHARE ----------------
-  const sharePost = async (postId, link) => {
-    await fetch(`${API}/posts/${postId}/share`, {
-      method: "POST",
-      headers: authHeaders(),
-    });
-
-    if (link) window.open(link, "_blank");
+  const sharePost = async (postId) => {
+    const shareUrl = `${window.location.origin}/post/${postId}`;
+  
+    // ✅ Works on mobile / HTTPS
+    if (navigator.share && window.isSecureContext) {
+      try {
+        await navigator.share({
+          title: "CampusConnect Post",
+          text: "Check out this post",
+          url: shareUrl,
+        });
+        return;
+      } catch (err) {
+        console.log("Native share failed, fallback used");
+      }
+    }
+  
+    // ✅ Always works fallback
+    await navigator.clipboard.writeText(shareUrl);
+    alert("Post link copied! You can share it anywhere.");
   };
+  
+  
+  
 
   // ---------------- COMMENTS ----------------
   const loadComments = async (postId) => {
@@ -167,7 +246,10 @@ function Home() {
 
     await fetch(`${API}/comments`, {
       method: "POST",
-      headers: authHeaders(),
+      headers: {
+        ...authHeaders(),
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         postId,
         text: commentText[postId],
@@ -189,17 +271,19 @@ function Home() {
           onChange={(e) => setContent(e.target.value)}
           placeholder="What's on your mind?"
         />
+
         <input
-  type="file"
-  accept="image/*"
-  onChange={(e) => setImage(e.target.files[0])}
-/>
+          type="file"
+          accept="image/*"
+          onChange={(e) => setImage(e.target.files[0])}
+        />
 
         <input
           value={link}
           onChange={(e) => setLink(e.target.value)}
           placeholder="Optional link"
         />
+
         <select
           value={postCategory}
           onChange={(e) => setPostCategory(e.target.value)}
@@ -208,6 +292,7 @@ function Home() {
             <option key={c}>{c}</option>
           ))}
         </select>
+
         <button onClick={createPost}>Post</button>
       </div>
 
@@ -218,23 +303,51 @@ function Home() {
           <b>{post.author?.name}</b> — {post.category}
           <p>{post.content}</p>
 
-          <button onClick={() => likePost(post._id)}>
-            ❤️ {post.likes.length}
-          </button>
-          <button onClick={() => sharePost(post._id, post.link)}>
-            🔁 {post.shares}
-          </button>
+          {post.image && (
+            <img
+              src={post.image}
+              alt="post"
+              style={{ maxWidth: "100%", marginTop: 10 }}
+            />
+          )}
+
+<button
+  style={{ color: post.reactions.myReaction === "like" ? "blue" : "black" }}
+  onClick={() => reactPost(post._id, "like")}
+>
+  👍 {post.reactions.like}
+</button>
+
+<button
+  style={{ color: post.reactions.myReaction === "love" ? "red" : "black" }}
+  onClick={() => reactPost(post._id, "love")}
+>
+  ❤️ {post.reactions.love}
+</button>
+
+<button
+  style={{ color: post.reactions.myReaction === "sad" ? "orange" : "black" }}
+  onClick={() => reactPost(post._id, "sad")}
+>
+  😢 {post.reactions.sad}
+</button>
+
+<button
+  style={{ color: post.reactions.myReaction === "angry" ? "darkred" : "black" }}
+  onClick={() => reactPost(post._id, "angry")}
+>
+  😡 {post.reactions.angry}
+</button>
+
+
+<button onClick={() => sharePost(post._id)}>
+  🔗 Share
+</button>
+
+
           <button onClick={() => loadComments(post._id)}>
             💬 {post.commentsCount}
           </button>
-          {post.image && (
-  <img
-    src={`http://localhost:5000${post.image}`}
-    alt="post"
-    style={{ maxWidth: "100%", marginTop: 10 }}
-  />
-)}
-
 
           {comments[post._id] && (
             <div>
@@ -243,6 +356,7 @@ function Home() {
                   <b>{c.user.name}:</b> {c.text}
                 </div>
               ))}
+
               <input
                 value={commentText[post._id] || ""}
                 onChange={(e) =>

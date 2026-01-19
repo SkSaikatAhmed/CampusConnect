@@ -1,4 +1,5 @@
 const PYQ = require("../models/PYQModel");
+const cloudinary = require("../config/cloudinary");
 
 exports.uploadPYQ = async (req, res) => {
   try {
@@ -30,7 +31,16 @@ exports.uploadPYQ = async (req, res) => {
         .json({ message: "Branch is required for MTECH" });
     }
 
-    const fileUrl = `/uploads/pyq/${req.file.filename}`;
+    const uploadResult = await cloudinary.uploader.upload(
+      `data:application/pdf;base64,${req.file.buffer.toString("base64")}`,
+      {
+        folder: "campusconnect/pyq",
+        resource_type: "raw",
+      }
+    );
+    
+    const fileUrl = uploadResult.secure_url;
+    
 
     const newPYQ = new PYQ({
       program,
@@ -88,6 +98,16 @@ exports.studentUploadPYQ = async (req, res) => {
 
     if (program === "MTECH" && !branch)
       return res.status(400).json({ message: "Branch required for MTECH" });
+      const uploadResult = await cloudinary.uploader.upload(
+        `data:application/pdf;base64,${req.file.buffer.toString("base64")}`,
+        {
+          folder: "campusconnect/pyq",
+          resource_type: "raw",
+        }
+      );
+      
+      const fileUrl = uploadResult.secure_url;
+      
 
     const pyq = await PYQ.create({
       program,
@@ -96,7 +116,7 @@ exports.studentUploadPYQ = async (req, res) => {
       subject,
       semester,
       year,
-      fileUrl: `/uploads/pyq/${req.file.filename}`,
+      fileUrl,
       uploadedBy: "STUDENT",
       status: "PENDING",
       createdBy: req.user?._id || null,

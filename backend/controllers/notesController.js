@@ -1,4 +1,5 @@
 const NOTES = require("../models/NotesModel");
+const cloudinary = require("../config/cloudinary");
 
 /* ADMIN UPLOAD */
 exports.uploadNotes = async (req, res) => {
@@ -14,6 +15,14 @@ exports.uploadNotes = async (req, res) => {
     if (program === "MTECH" && !branch)
       return res.status(400).json({ message: "Branch required for MTECH" });
 
+      const uploadResult = await cloudinary.uploader.upload(
+        `data:application/pdf;base64,${req.file.buffer.toString("base64")}`,
+        {
+          folder: "campusconnect/notes",
+          resource_type: "raw",
+        }
+      );
+      
       const notes = await NOTES.create({
         program,
         department,
@@ -21,11 +30,12 @@ exports.uploadNotes = async (req, res) => {
         subject,
         semester,
         year,
-        fileUrl: `/uploads/notes/${req.file.filename}`,
+        fileUrl: uploadResult.secure_url,
         uploadedBy: "ADMIN",
         status: "APPROVED",
-        createdBy: req.user?._id || null, 
+        createdBy: req.user?._id || null,
       });
+      
       
 
     res.json({ message: "Notes uploaded", notes });
@@ -54,18 +64,27 @@ exports.studentUploadNotes = async (req, res) => {
       if (program === "MTECH" && !branch)
         return res.status(400).json({ message: "Branch required for MTECH" });
   
-      const notes = await NOTES.create({
-        program,
-        department,
-        branch: program === "MTECH" ? branch : null,
-        subject,
-        semester,
-        year,
-        fileUrl: `/uploads/notes/${req.file.filename}`,
-        uploadedBy: "STUDENT",
-        status: "PENDING",
-        createdBy: req.user._id,
-      });
+        const uploadResult = await cloudinary.uploader.upload(
+          `data:application/pdf;base64,${req.file.buffer.toString("base64")}`,
+          {
+            folder: "campusconnect/notes",
+            resource_type: "raw",
+          }
+        );
+        
+        const notes = await NOTES.create({
+          program,
+          department,
+          branch: program === "MTECH" ? branch : null,
+          subject,
+          semester,
+          year,
+          fileUrl: uploadResult.secure_url,
+          uploadedBy: "ADMIN",
+          status: "APPROVED",
+          createdBy: req.user?._id || null,
+        });
+        
   
       res.json({ message: "Uploaded. Awaiting approval." });
     } catch (err) {

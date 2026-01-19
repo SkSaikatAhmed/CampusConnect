@@ -4,6 +4,12 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const API = "http://localhost:5000";
+const authHeader = () => ({
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
+});
+
 
 function PendingPYQ() {
   const [data, setData] = useState([]);
@@ -21,11 +27,17 @@ function PendingPYQ() {
   const fetchPending = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API}/api/pyq/pending`);
+  
+      const res = await axios.get(
+        `${API}/api/pyq/pending`,
+        authHeader()
+      );
       setData(res.data);
-      
-      // Get stats
-      const statsRes = await axios.get(`${API}/api/pyq/stats`);
+  
+      const statsRes = await axios.get(
+        `${API}/api/pyq/stats`,
+        authHeader()
+      );
       setStats(statsRes.data);
     } catch (err) {
       toast.error("Error fetching pending uploads");
@@ -34,16 +46,22 @@ function PendingPYQ() {
       setLoading(false);
     }
   };
+  
 
   const approve = async (id) => {
     try {
-      await axios.put(`${API}/api/pyq/approve/${id}`);
+      await axios.put(
+        `${API}/api/pyq/approve/${id}`,
+        {},
+        authHeader()
+      );
       setData(prev => prev.filter(d => d._id !== id));
       toast.success("PYQ approved successfully!");
     } catch (error) {
       toast.error("Failed to approve PYQ");
     }
   };
+  
 
   const openRejectModal = (id) => {
     setItemToReject(id);
@@ -55,9 +73,13 @@ function PendingPYQ() {
       toast.error("Please provide a rejection reason");
       return;
     }
-
+  
     try {
-      await axios.put(`${API}/api/pyq/reject/${itemToReject}`, { reason: rejectReason });
+      await axios.put(
+        `${API}/api/pyq/reject/${itemToReject}`,
+        { reason: rejectReason },
+        authHeader()
+      );
       setData(prev => prev.filter(d => d._id !== itemToReject));
       toast.success("PYQ rejected successfully");
       setShowRejectModal(false);
@@ -67,6 +89,7 @@ function PendingPYQ() {
       toast.error("Failed to reject PYQ");
     }
   };
+  
 
   const viewDetails = (item) => {
     setSelectedItem(item);
@@ -77,8 +100,9 @@ function PendingPYQ() {
   };
 
   const downloadPDF = (url) => {
-    window.open(`${API}${url}`, '_blank');
+    window.open(url, "_blank");
   };
+  
 
   const getTimeAgo = (dateString) => {
     const date = new Date(dateString);

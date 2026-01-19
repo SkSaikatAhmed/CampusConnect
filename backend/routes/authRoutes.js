@@ -42,6 +42,7 @@ router.put(
 );
 
 
+
 // Student registration
 router.post(
   "/register",

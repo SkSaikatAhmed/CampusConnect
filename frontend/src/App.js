@@ -10,6 +10,7 @@ import FacultyReview from "./pages/FacultyReview";
 import Notes from "./pages/Notes";
 import UploadNotes from "./pages/UploadNotes";
 import PYQ from "./pages/PYQ";
+import PostDetail from "./pages/PostDetail";
 
 import AIQuestionGenerator from "./pages/AIQuestionGenerator";
 
@@ -40,6 +41,8 @@ function App() {
         
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<StudentRegister />} />
+        <Route path="/post/:id" element={<PostDetail />} />
+
 
         {/* -------- STUDENT ROUTES (LOGIN REQUIRED) -------- */}
 

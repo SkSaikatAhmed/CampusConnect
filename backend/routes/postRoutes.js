@@ -12,6 +12,10 @@ const {
 } = require("../controllers/postController");
 
 router.get("/", getFeed); // public
+const { getPostById } = require("../controllers/postController");
+
+// PUBLIC
+router.get("/:id", getPostById);
 
 // ✅ ONLY THIS CREATE ROUTE
 router.post(

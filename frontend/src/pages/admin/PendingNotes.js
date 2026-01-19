@@ -4,6 +4,12 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const API = "http://localhost:5000";
+const authHeader = () => ({
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
+});
+
 
 function PendingNotes() {
   const [data, setData] = useState([]);
@@ -21,11 +27,17 @@ function PendingNotes() {
   const fetchPending = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API}/api/notes/pending`);
+  
+      const res = await axios.get(
+        `${API}/api/notes/pending`,
+        authHeader()
+      );
       setData(res.data);
-      
-      // Get stats
-      const statsRes = await axios.get(`${API}/api/notes/stats`);
+  
+      const statsRes = await axios.get(
+        `${API}/api/notes/stats`,
+        authHeader()
+      );
       setStats(statsRes.data);
     } catch (err) {
       toast.error("Error fetching pending notes");
@@ -34,16 +46,22 @@ function PendingNotes() {
       setLoading(false);
     }
   };
+  
 
   const approve = async (id) => {
     try {
-      await axios.put(`${API}/api/notes/approve/${id}`);
+      await axios.put(
+        `${API}/api/notes/approve/${id}`,
+        {},
+        authHeader()
+      );
       setData(prev => prev.filter(d => d._id !== id));
       toast.success("Notes approved successfully!");
     } catch (error) {
       toast.error("Failed to approve notes");
     }
   };
+  
 
   const openRejectModal = (id) => {
     setItemToReject(id);
@@ -55,9 +73,13 @@ function PendingNotes() {
       toast.error("Please provide a rejection reason");
       return;
     }
-
+  
     try {
-      await axios.put(`${API}/api/notes/reject/${itemToReject}`, { reason: rejectReason });
+      await axios.put(
+        `${API}/api/notes/reject/${itemToReject}`,
+        { reason: rejectReason },
+        authHeader()
+      );
       setData(prev => prev.filter(d => d._id !== itemToReject));
       toast.success("Notes rejected successfully");
       setShowRejectModal(false);
@@ -67,6 +89,7 @@ function PendingNotes() {
       toast.error("Failed to reject notes");
     }
   };
+  
 
   const viewDetails = (item) => {
     setSelectedItem(item);
@@ -77,8 +100,9 @@ function PendingNotes() {
   };
 
   const downloadPDF = (url) => {
-    window.open(`${API}${url}`, '_blank');
+    window.open(url, "_blank");
   };
+  
 
   const getTimeAgo = (dateString) => {
     const date = new Date(dateString);
@@ -98,10 +122,18 @@ function PendingNotes() {
       toast.info("No pending notes to approve");
       return;
     }
-
+  
     if (window.confirm(`Approve all ${data.length} pending notes?`)) {
       try {
-        await Promise.all(data.map(item => axios.put(`${API}/api/notes/approve/${item._id}`)));
+        await Promise.all(
+          data.map(item =>
+            axios.put(
+              `${API}/api/notes/approve/${item._id}`,
+              {},
+              authHeader()
+            )
+          )
+        );
         setData([]);
         toast.success(`All ${data.length} notes approved successfully!`);
       } catch (error) {
@@ -109,6 +141,7 @@ function PendingNotes() {
       }
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 p-4 md:p-6">
