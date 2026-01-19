@@ -101,3 +101,8 @@ exports.getMe = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch profile" });
   }
 };
+
+
+const cloudinary = require("../config/cloudinary");
+
+console.log("Cloudinary ready:", !!cloudinary.uploader);

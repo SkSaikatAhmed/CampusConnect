@@ -269,7 +269,7 @@ function Profile() {
                   <div className="h-32 w-32 rounded-full border-4 border-white/30 bg-gradient-to-br from-blue-400 to-purple-500 overflow-hidden shadow-2xl">
                     {user.profilePicture ? (
                       <img 
-                      src={`http://localhost:5000${user.profilePicture}`}
+                      src={user.profilePicture}
                       alt={user.name}
                       className="h-full w-full object-cover"
                     />
