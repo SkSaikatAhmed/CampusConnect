@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { 
   ArrowLeft, 
   Camera, 
@@ -21,7 +22,6 @@ import {
   Clock,
   Phone
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import axios from "../api";
 
 function Profile() {
@@ -30,6 +30,8 @@ function Profile() {
   const [user, setUser] = useState(null);
   const [editedUser, setEditedUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { id } = useParams(); // userId from /profile/:id
+
   const [stats, setStats] = useState({
     notesShared: 0,
     pyqsUploaded: 0,
@@ -45,7 +47,9 @@ function Profile() {
 
   const fetchUserData = async () => {
     try {
-      const res = await axios.get("/api/auth/me");
+      const endpoint = id ? `/api/users/${id}` : "/api/auth/me";
+const res = await axios.get(endpoint);
+
   
       const u = res.data;
   
@@ -74,8 +78,15 @@ function Profile() {
       setEditedUser(formattedUser);
     } catch (err) {
       console.error("Profile fetch failed", err);
-      navigate("/login");
-    } finally {
+    
+      if (err.response?.status === 401) {
+        navigate("/login");
+      } else {
+        alert("User profile not found or access denied");
+        navigate(-1);
+      }
+    }
+     finally {
       setLoading(false);
     }
   };

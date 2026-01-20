@@ -5,20 +5,23 @@ const Post = require("../models/Post");
  */
 exports.getFeed = async (req, res) => {
   try {
-    const { category } = req.query;
+    const { category, page = 1, limit = 10 } = req.query;
 
     const filter = { isPublic: true };
     if (category) filter.category = category;
 
     const posts = await Post.find(filter)
       .populate("author", "name role profilePhoto")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
 
     res.json(posts);
   } catch (err) {
     res.status(500).json({ message: "Failed to load feed" });
   }
 };
+
 
 /**
  * 🔐 CREATE POST
@@ -108,13 +111,10 @@ exports.reactPost = async (req, res) => {
     const io = req.app.get("io");
     io.emit("post-reacted", {
       postId: post._id,
-      reactions: {
-        like: post.reactions.like.length,
-        love: post.reactions.love.length,
-        sad: post.reactions.sad.length,
-        angry: post.reactions.angry.length,
-      },
+      reactions: post.reactions,
+      userId,
     });
+    
 
     res.json({ success: true });
   } catch (err) {
