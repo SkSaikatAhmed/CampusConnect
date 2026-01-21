@@ -1015,3 +1015,61 @@
     object-fit: cover;
   }
   
+  .view-only-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+  
+    /* Glassmorphism */
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.18),
+      rgba(255, 255, 255, 0.08)
+    );
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #e5e7eb;
+  
+    font-size: 0.85rem;
+    font-weight: 500;
+  
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    animation: fadeSlideIn 0.4s ease-out;
+  }
+  
+  .view-only-icon {
+    width: 16px;
+    height: 16px;
+    color: #93c5fd; /* soft blue */
+  }
+  
+  /* Subtle animation */
+  @keyframes fadeSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Mobile optimization */
+  @media (max-width: 640px) {
+    .view-only-badge {
+      font-size: 0.75rem;
+      padding: 5px 12px;
+    }
+  
+    .view-only-icon {
+      width: 14px;
+      height: 14px;
+    }
+  }
+  

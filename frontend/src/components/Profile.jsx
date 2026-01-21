@@ -31,6 +31,7 @@ function Profile() {
   const [editedUser, setEditedUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const { id } = useParams(); // userId from /profile/:id
+  const isOwnProfile = !id;
 
   const [stats, setStats] = useState({
     notesShared: 0,
@@ -43,13 +44,13 @@ function Profile() {
   useEffect(() => {
     fetchUserData();
     fetchUserStats();
-  }, []);
+  }, [id]);
+  
 
   const fetchUserData = async () => {
     try {
       const endpoint = id ? `/api/users/${id}` : "/api/auth/me";
-const res = await axios.get(endpoint);
-
+      const res = await axios.get(endpoint);
   
       const u = res.data;
   
@@ -78,18 +79,20 @@ const res = await axios.get(endpoint);
       setEditedUser(formattedUser);
     } catch (err) {
       console.error("Profile fetch failed", err);
-    
+  
       if (err.response?.status === 401) {
         navigate("/login");
-      } else {
-        alert("User profile not found or access denied");
+      } else if (err.response?.status === 404) {
+        alert("User not found");
         navigate(-1);
+      } else {
+        alert("Failed to load profile");
       }
-    }
-     finally {
-      setLoading(false);
+    } finally {
+      setLoading(false);   // 🔥 THIS WAS MISSING
     }
   };
+  
   
 
   const fetchUserStats = async () => {
@@ -293,15 +296,20 @@ const res = await axios.get(endpoint);
                       </div>
                     )}
                   </div>
-                  <label className="absolute bottom-2 right-2 p-2 bg-white/20 backdrop-blur-sm rounded-full shadow-lg hover:bg-white/30 transition-colors cursor-pointer border border-white/30">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleProfilePictureUpload}
-                      className="hidden"
-                    />
-                    <Camera className="h-4 w-4 text-white" />
-                  </label>
+                  {isOwnProfile && (
+  <label className="absolute bottom-2 right-2 p-2 bg-white/20 backdrop-blur-sm rounded-full shadow-lg hover:bg-white/30 transition-colors cursor-pointer border border-white/30">
+    <input
+      type="file"
+      accept="image/*"
+      onChange={handleProfilePictureUpload}
+      className="hidden"
+    />
+    <Camera className="h-4 w-4 text-white" />
+  </label>
+)}
+
+
+
                 </div>
                 
                 <div className="flex-1">
@@ -317,6 +325,13 @@ const res = await axios.get(endpoint);
                         {user.role}
                       </span>
                     </div>
+                    {!isOwnProfile && (
+  <div className="view-only-badge">
+    <Shield className="view-only-icon" />
+    <span>View Only</span>
+  </div>
+)}
+
                   </div>
                   
                   <div className="space-y-2">
@@ -423,16 +438,19 @@ const res = await axios.get(endpoint);
                   <GraduationCap className="h-6 w-6 text-blue-600" />
                   <span>Academic Information</span>
                 </h3>
-                <button
-                  onClick={() => {
-                    setEditedUser(user);
-                    setIsEditing(true);
-                  }}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center space-x-2"
-                >
-                  <Edit2 className="h-4 w-4" />
-                  <span>Edit Profile</span>
-                </button>
+                {isOwnProfile && (
+  <button
+    onClick={() => {
+      setEditedUser(user);
+      setIsEditing(true);
+    }}
+    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center space-x-2"
+  >
+    <Edit2 className="h-4 w-4" />
+    <span>Edit Profile</span>
+  </button>
+)}
+
               </div>
               
               <div className="space-y-6">

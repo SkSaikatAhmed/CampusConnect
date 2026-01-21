@@ -8,7 +8,11 @@ connectDB();
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL,
+  credentials: true,
+}));
+
 app.use(express.json());
 
 app.use("/uploads", express.static("uploads"));
@@ -19,6 +23,7 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/posts", require("./routes/postRoutes"));
 app.use("/api/comments", require("./routes/commentRoutes"));
+app.use("/api/users", require("./routes/userRoutes"));
 
 //app.use("/api/auth", require("./routes/authRoutes"));
 
@@ -36,10 +41,11 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.CLIENT_URL,
     credentials: true,
   },
 });
+
 
 // 🔐 SOCKET AUTH (JWT)
 io.use((socket, next) => {
