@@ -68,9 +68,10 @@ function ManageContent() {
     }
   };
 
-  const downloadPDF = (url) => {
-    window.open(`http://localhost:5000${url}`, '_blank');
+  const previewPYQ = (id) => {
+    window.open(`http://localhost:5000/api/pyq/view/${id}`, '_blank');
   };
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
@@ -294,7 +295,8 @@ function ManageContent() {
                         <td className="py-4 px-6">
                           <div className="flex items-center space-x-3">
                             <button
-                              onClick={() => downloadPDF(pyq.fileUrl)}
+                              onClick={() => previewPYQ(pyq._id)}
+
                               className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200"
                             >
                               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

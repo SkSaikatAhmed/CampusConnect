@@ -1,3 +1,5 @@
+const axios = require("axios");
+
 const express = require("express");
 const router = express.Router();
 const upload = require("../middleware/upload");
@@ -60,6 +62,49 @@ router.get("/filter", async (req, res) => {
 
   const data = await NOTES.find(query).sort({ year: -1 });
   res.json(data);
+});
+// ✅ VIEW / PREVIEW NOTES (PDF INLINE)
+router.get("/view/:id", async (req, res) => {
+  try {
+    const note = await NOTES.findById(req.params.id);
+    if (!note) {
+      return res.status(404).send("Notes not found");
+    }
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "inline");
+
+    const response = await axios.get(note.fileUrl, {
+      responseType: "stream",
+    });
+
+    response.data.pipe(res);
+  } catch (error) {
+    console.error("NOTES VIEW ERROR:", error.message);
+    res.status(500).send("Unable to preview notes");
+  }
+});
+// ⬇️ DOWNLOAD NOTES (FORCED DOWNLOAD)
+router.get("/download/:id", async (req, res) => {
+  try {
+    const note = await NOTES.findById(req.params.id);
+    if (!note) return res.status(404).send("Notes not found");
+
+    const response = await axios.get(note.fileUrl, {
+      responseType: "stream",
+    });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${note.subject || "notes"}.pdf"`
+    );
+
+    response.data.pipe(res);
+  } catch (err) {
+    console.error("NOTES DOWNLOAD ERROR:", err.message);
+    res.status(500).send("Download failed");
+  }
 });
 
 module.exports = router;

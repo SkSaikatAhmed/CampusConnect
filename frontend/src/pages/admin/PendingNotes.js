@@ -99,9 +99,10 @@ function PendingNotes() {
     setSelectedItem(null);
   };
 
-  const downloadPDF = (url) => {
-    window.open(url, "_blank");
+  const previewNote = (id) => {
+    window.open(`${API}/api/notes/view/${id}`, "_blank");
   };
+  
   
 
   const getTimeAgo = (dateString) => {
@@ -434,8 +435,8 @@ function PendingNotes() {
                               </div>
                             </div>
                             <button
-                              onClick={() => downloadPDF(selectedItem.fileUrl)}
-                              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-lg hover:from-teal-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition duration-200"
+onClick={() => previewNote(selectedItem._id)}
+className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-lg hover:from-teal-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition duration-200"
                             >
                               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>

@@ -99,9 +99,10 @@ function PendingPYQ() {
     setSelectedItem(null);
   };
 
-  const downloadPDF = (url) => {
-    window.open(url, "_blank");
+  const previewPYQ = (id) => {
+    window.open(`${API}/api/pyq/view/${id}`, "_blank");
   };
+  
   
 
   const getTimeAgo = (dateString) => {
@@ -338,7 +339,8 @@ function PendingPYQ() {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Document</label>
                         <button
-                          onClick={() => downloadPDF(selectedItem.fileUrl)}
+                          onClick={() => previewPYQ(selectedItem._id)}
+
                           className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg hover:from-orange-600 hover:to-amber-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition duration-200"
                         >
                           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

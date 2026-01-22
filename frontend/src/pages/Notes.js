@@ -668,11 +668,12 @@ function Notes() {
                         {/* Action Buttons */}
                         <div className="flex space-x-3">
                         <a
-  href={`${API}${n.fileUrl}`}
+  href={`${API}/api/notes/view/${n._id}`}
   target="_blank"
   rel="noreferrer"
   className="flex-1"
 >
+
   <span className="block">
     <Button variant="outline" className="w-full">
       <Eye className="h-4 w-4 mr-2" />
@@ -683,8 +684,10 @@ function Notes() {
 
 <Button
   className="flex-1 w-full"
-  onClick={() => handleDownload(n.fileUrl, n.subject)}
->
+  onClick={() =>
+    window.open(`${API}/api/notes/download/${n._id}`, "_blank")
+  }
+  >
   <Download className="h-4 w-4 mr-2" />
   Download
 </Button>

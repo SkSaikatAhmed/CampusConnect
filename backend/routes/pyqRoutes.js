@@ -1,3 +1,5 @@
+const axios = require("axios");
+
 const express = require("express");
 const router = express.Router();
 const upload = require("../middleware/upload");
@@ -58,6 +60,42 @@ router.get("/filter", async (req, res) => {
 
   const pyqs = await PYQ.find(query).sort({ year: -1 });
   res.json(pyqs);
+});
+
+// 🔴 Replace the existing /view/:id route with this:
+router.get("/view/:id", async (req, res) => {
+  try {
+    const pyq = await PYQ.findById(req.params.id);
+    if (!pyq) return res.status(404).send("PYQ not found");
+
+    // Redirect directly to Cloudinary URL for inline viewing
+    res.redirect(pyq.fileUrl);
+  } catch (err) {
+    console.error("PYQ VIEW ERROR:", err.message);
+    res.status(500).send("Unable to preview PYQ");
+  }
+});
+
+// 🔴 Replace the existing /download/:id route with this:
+router.get("/download/:id", async (req, res) => {
+  try {
+    const pyq = await PYQ.findById(req.params.id);
+    if (!pyq) return res.status(404).send("PYQ not found");
+
+    // Get the filename from the URL or use subject name
+    const filename = pyq.subject 
+      ? `${pyq.subject.replace(/\s+/g, '_')}_PYQ.pdf`
+      : "pyq.pdf";
+    
+    // Set headers for forced download
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    
+    // Redirect to Cloudinary URL for download
+    res.redirect(pyq.fileUrl);
+  } catch (err) {
+    console.error("PYQ DOWNLOAD ERROR:", err.message);
+    res.status(500).send("Download failed");
+  }
 });
 
 module.exports = router;

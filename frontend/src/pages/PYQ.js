@@ -649,28 +649,36 @@ function PYQ() {
                         {/* Action Buttons */}
                         <div className="flex space-x-3">
                         <a
-  href={`${API}${p.fileUrl}`}
+  href={`${API}/api/pyq/view/${p._id}`}
   target="_blank"
   rel="noreferrer"
   className="flex-1"
 >
+
   <span className="block">
-    <Button variant="outline" className="w-full">
-      <Eye className="h-4 w-4 mr-2" />
-      Preview
-    </Button>
+    {/* Preview Button - Fixed to open in new tab */}
+<Button
+  variant="outline"
+  className="w-full"
+  onClick={() => window.open(`${API}/api/pyq/view/${p._id}`, "_blank")}
+>
+  <Eye className="h-4 w-4 mr-2" />
+  Preview
+</Button>
   </span>
 </a>
 
+{/* Download Button - Fixed to force download */}
+
 <Button
   className="flex-1 w-full"
-  onClick={() => handleDownload(p.fileUrl, p.subject)}
->
+  onClick={() =>
+    window.open(`${API}/api/pyq/download/${p._id}`, "_blank")
+  }
+  >
   <Download className="h-4 w-4 mr-2" />
   Download
 </Button>
-
-
                         </div>
 
                         {/* Quick Stats */}
