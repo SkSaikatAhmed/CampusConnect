@@ -5,7 +5,6 @@ import {
   Camera, 
   Mail, 
   BookOpen, 
-  Calendar,
   MapPin,
   Edit2,
   Check,

@@ -2,34 +2,15 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   Users, 
-  Upload, 
-  FileText, 
-  CheckSquare, 
-  Settings, 
-  BarChart3,
-  Shield,
   Trash2,
   Eye,
-  UserX,
-  Download,
-  Activity,
-  Home,
-  LogOut,
   UserCheck,
   AlertCircle,
   Search,
-  Filter,
-  ChevronLeft,
-  ChevronRight,
   UserCog,
   FileCheck,
-  FileX,
   Ban,
-  UserPlus,
-  Calendar,
-  GraduationCap,
   Mail,
-  RefreshCw
 } from "lucide-react";
 
 // Line 23 (or wherever the const API is defined)
@@ -61,7 +42,8 @@ function AdminDashboard() {
   // Fetch real data
   useEffect(() => {
     fetchAllData();
-  }, []);
+  }, [fetchAllData]);
+  
 
   const fetchAllData = async () => {
     try {

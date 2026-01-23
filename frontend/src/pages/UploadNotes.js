@@ -9,18 +9,14 @@ import {
   BookOpen,
   Calendar,
   Clock,
-  Plus,
   CheckCircle,
   AlertCircle,
   ArrowLeft,
   Sparkles,
-  FileUp,
   FolderPlus,
-  Award,
   Notebook,
   PenTool,
   FileCheck,
-  X,
   BookMarked
 } from "lucide-react";
 
