@@ -24,8 +24,8 @@ import {
   FileCheck,
   Users
 } from "lucide-react";
+const API = process.env.REACT_APP_SOCKET_URL || "http://localhost:5000";
 
-const API = "http://localhost:5000";
 
 // Custom UI Components (matching previous design)
 const Button = ({ children, className = "", variant = "default", size = "default", ...props }) => {

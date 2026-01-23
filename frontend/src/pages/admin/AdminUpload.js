@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const API = "http://localhost:5000";
-
+const API = process.env.REACT_APP_SOCKET_URL || "http://localhost:5000";
+// This will be: https://campusconnect-bmrw.onrender.com
 function AdminUpload({ type }) {
   const [programs, setPrograms] = useState([]);
   const [departments, setDepartments] = useState([]);

@@ -11,9 +11,8 @@ import { FiMoreHorizontal } from "react-icons/fi";
 import "./Home.css";
 import { useNavigate } from "react-router-dom";
 
-const API = "http://localhost:5000/api";
-
-const socket = io("http://localhost:5000", {
+const API = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+const socket = io(process.env.REACT_APP_SOCKET_URL || "http://localhost:5000", {
   auth: {
     token: localStorage.getItem("token"),
   },

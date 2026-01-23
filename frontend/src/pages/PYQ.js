@@ -20,9 +20,9 @@ import {
   X
 } from "lucide-react";
 
-const API = "http://localhost:5000";
+const API = process.env.REACT_APP_SOCKET_URL || "http://localhost:5000";
+// This will be: https://campusconnect-bmrw.onrender.com
 
-// Custom UI Components (matching Home.js style)
 const Button = ({ children, className = "", variant = "default", size = "default", ...props }) => {
   const baseStyles = "inline-flex items-center justify-center whitespace-nowrap rounded-lg font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:pointer-events-none disabled:opacity-50";
   

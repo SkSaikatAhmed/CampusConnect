@@ -32,8 +32,9 @@ import {
   RefreshCw
 } from "lucide-react";
 
-const API = "http://localhost:5000";
-
+// Line 23 (or wherever the const API is defined)
+const API = process.env.REACT_APP_SOCKET_URL || "http://localhost:5000";
+// This will be: https://campusconnect-bmrw.onrender.com
 function AdminDashboard() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
