@@ -80,10 +80,6 @@ function Home() {
   const fetchPosts = async (pageNum = 1, reset = false) => {
     setLoading(true);
     try {
-      const url = category
-        ? `${API}/posts?category=${category}&page=${pageNum}&limit=10`
-        : `${API}/posts?page=${pageNum}&limit=10`;
-
         // add at top
 
         const res = await API_INSTANCE.get(

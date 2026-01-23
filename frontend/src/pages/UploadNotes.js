@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
 import { 
   Upload,
@@ -19,8 +18,9 @@ import {
   FileCheck,
   BookMarked
 } from "lucide-react";
+import API from "../api";
 
-const API = process.env.REACT_APP_SOCKET_URL;
+const BASE_URL = process.env.REACT_APP_API_URL;
 // This will be: https://campusconnect-bmrw.onrender.com
 const Button = ({ children, className = "", variant = "default", size = "default", ...props }) => {
   const baseStyles = "inline-flex items-center justify-center whitespace-nowrap rounded-lg font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:pointer-events-none disabled:opacity-50";
@@ -184,14 +184,14 @@ function UploadNotes() {
 
   /* META */
   useEffect(() => {
-    axios.get(`${API}/api/meta/PROGRAM`).then(r => setPrograms(r.data));
-    axios.get(`${API}/api/meta/DEPARTMENT`).then(r => setDepartments(r.data));
-    axios.get(`${API}/api/meta/SUBJECT`).then(r => setSubjects(r.data));
+    API.get("/api/meta/PROGRAM").then(r => setPrograms(r.data));
+    API.get(`${API}/api/meta/DEPARTMENT`).then(r => setDepartments(r.data));
+    API.get(`${API}/api/meta/SUBJECT`).then(r => setSubjects(r.data));
   }, []);
 
   useEffect(() => {
     if (form.program === "MTECH" && form.department) {
-      axios.get(`${API}/api/meta/BRANCH`, {
+      API.get("/api/meta/BRANCH", {
         params: { program: "MTECH", department: form.department }
       }).then(r => setBranches(r.data));
     } else {
@@ -228,15 +228,8 @@ function UploadNotes() {
 
       const token = localStorage.getItem("token");
 
-      await axios.post(
-        `${API}/api/notes/student-upload`,
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await API.post("/api/notes/student-upload", data);
+
             
       setUploadSuccess(true);
       

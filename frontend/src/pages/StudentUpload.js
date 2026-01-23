@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
 import { 
   Upload,
@@ -19,7 +18,8 @@ import {
   Award
 } from "lucide-react";
 
-const API = process.env.REACT_APP_SOCKET_URL;
+import API from "../api";
+const BASE_URL = process.env.REACT_APP_API_URL;
 // This will be: https://campusconnect-bmrw.onrender.com
 const Button = ({ children, className = "", variant = "default", size = "default", ...props }) => {
   const baseStyles = "inline-flex items-center justify-center whitespace-nowrap rounded-lg font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:pointer-events-none disabled:opacity-50";
@@ -175,15 +175,15 @@ function UploadPYQ() {
 
   /* ---------- FETCH META (READ ONLY) ---------- */
   useEffect(() => {
-    axios.get(`${API}/api/meta/PROGRAM`).then(r => setPrograms(r.data));
-    axios.get(`${API}/api/meta/DEPARTMENT`).then(r => setDepartments(r.data));
-    axios.get(`${API}/api/meta/SUBJECT`).then(r => setSubjects(r.data));
+    API.get("/api/meta/PROGRAM").then(r => setPrograms(r.data));
+    API.get("/api/meta/DEPARTMENT").then(r => setDepartments(r.data));
+    API.get("/api/meta/SUBJECT").then(r => setSubjects(r.data));
   }, []);
 
   useEffect(() => {
     if (form.program === "MTECH" && form.department) {
-      axios
-        .get(`${API}/api/meta/BRANCH`, {
+      API
+        .get("/api/meta/BRANCH", {
           params: { program: "MTECH", department: form.department },
         })
         .then(r => setBranches(r.data));
@@ -198,12 +198,12 @@ function UploadPYQ() {
     if (!newSubject.trim()) return;
 
     try {
-      await axios.post(`${API}/api/meta`, {
+        await API.post("/api/meta", {
         type: "SUBJECT",
         value: newSubject.trim(),
       });
 
-      const res = await axios.get(`${API}/api/meta/SUBJECT`);
+      const res = await API.get("/api/meta/SUBJECT");
       setSubjects(res.data);
 
       setForm({ ...form, subject: newSubject.trim() });
@@ -244,15 +244,8 @@ if (!token) {
   return;
 }
 
-await axios.post(
-  `${API}/api/pyq/student-upload`,
-  data,
-  {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  }
-);
+await API.post("/api/pyq/student-upload", data);
+
 
             
       setUploadSuccess(true);

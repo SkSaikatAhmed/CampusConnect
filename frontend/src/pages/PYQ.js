@@ -192,8 +192,9 @@ API.get("/api/pyq/filter")
   const fetchPYQs = async () => {
     setLoading(true);
     try {
-      API.get("/api/pyq/filter", { params: filters });
-      const filteredData = res.data;
+      const res = await API.get("/api/pyq/filter", { params: filters });
+const filteredData = res.data;
+
       
       // Apply search filter if there's a search query
       let finalData = filteredData;
