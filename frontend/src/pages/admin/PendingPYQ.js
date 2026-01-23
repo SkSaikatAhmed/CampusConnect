@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const API = process.env.REACT_APP_SOCKET_URL;
-const authHeader = () => ({
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
-  },
-});
+import API from "../../api";
+const BASE_URL = process.env.REACT_APP_API_URL;
+
 
 
 function PendingPYQ() {
@@ -28,17 +24,13 @@ function PendingPYQ() {
     try {
       setLoading(true);
   
-      const res = await axios.get(
-        `${API}/api/pyq/pending`,
-        authHeader()
-      );
+      const res = await API.get("/api/pyq/pending");
+
       setData(res.data);
   
-      const statsRes = await axios.get(
-        `${API}/api/pyq/stats`,
-        authHeader()
-      );
-      setStats(statsRes.data);
+      const statsRes = await API.get("/api/pyq/stats");
+setStats(statsRes.data);
+
     } catch (err) {
       toast.error("Error fetching pending uploads");
       console.error("Error fetching pending uploads", err);
@@ -50,11 +42,7 @@ function PendingPYQ() {
 
   const approve = async (id) => {
     try {
-      await axios.put(
-        `${API}/api/pyq/approve/${id}`,
-        {},
-        authHeader()
-      );
+      API.put(`/api/pyq/approve/${id}`);
       setData(prev => prev.filter(d => d._id !== id));
       toast.success("PYQ approved successfully!");
     } catch (error) {
@@ -75,11 +63,8 @@ function PendingPYQ() {
     }
   
     try {
-      await axios.put(
-        `${API}/api/pyq/reject/${itemToReject}`,
-        { reason: rejectReason },
-        authHeader()
-      );
+      API.put(`/api/pyq/reject/${itemToReject}`, { reason: rejectReason });
+
       setData(prev => prev.filter(d => d._id !== itemToReject));
       toast.success("PYQ rejected successfully");
       setShowRejectModal(false);
@@ -100,7 +85,8 @@ function PendingPYQ() {
   };
 
   const previewPYQ = (id) => {
-    window.open(`${API}/api/pyq/view/${id}`, "_blank");
+    window.open(`${BASE_URL}/api/pyq/view/${id}`, "_blank");
+
   };
   
   

@@ -1,14 +1,9 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import API from "../../api";
+const BASE_URL = process.env.REACT_APP_API_URL;
 
-const API = process.env.REACT_APP_SOCKET_URL;
-const authHeader = () => ({
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
-  },
-});
 
 
 function PendingNotes() {
@@ -28,16 +23,12 @@ function PendingNotes() {
     try {
       setLoading(true);
   
-      const res = await axios.get(
-        `${API}/api/notes/pending`,
-        authHeader()
-      );
+      const res = await API.get("/api/notes/pending");
+
       setData(res.data);
   
-      const statsRes = await axios.get(
-        `${API}/api/notes/stats`,
-        authHeader()
-      );
+      const statsRes = await API.get("/api/notes/stats");
+
       setStats(statsRes.data);
     } catch (err) {
       toast.error("Error fetching pending notes");
@@ -50,11 +41,8 @@ function PendingNotes() {
 
   const approve = async (id) => {
     try {
-      await axios.put(
-        `${API}/api/notes/approve/${id}`,
-        {},
-        authHeader()
-      );
+      API.put(`/api/notes/approve/${id}`);
+
       setData(prev => prev.filter(d => d._id !== id));
       toast.success("Notes approved successfully!");
     } catch (error) {
@@ -75,11 +63,8 @@ function PendingNotes() {
     }
   
     try {
-      await axios.put(
-        `${API}/api/notes/reject/${itemToReject}`,
-        { reason: rejectReason },
-        authHeader()
-      );
+      API.put(`/api/notes/reject/${itemToReject}`, { reason: rejectReason });
+
       setData(prev => prev.filter(d => d._id !== itemToReject));
       toast.success("Notes rejected successfully");
       setShowRejectModal(false);
@@ -100,7 +85,8 @@ function PendingNotes() {
   };
 
   const previewNote = (id) => {
-    window.open(`${API}/api/notes/view/${id}`, "_blank");
+    window.open(`${BASE_URL}/api/notes/view/${id}`, "_blank");
+
   };
   
   
@@ -128,11 +114,7 @@ function PendingNotes() {
       try {
         await Promise.all(
           data.map(item =>
-            axios.put(
-              `${API}/api/notes/approve/${item._id}`,
-              {},
-              authHeader()
-            )
+            API.put(`/api/notes/approve/${item._id}`)
           )
         );
         setData([]);
@@ -142,6 +124,7 @@ function PendingNotes() {
       }
     }
   };
+  
   
 
   return (

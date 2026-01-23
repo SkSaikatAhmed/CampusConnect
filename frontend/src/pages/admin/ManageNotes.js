@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import API from "../../api";
+const BASE_URL = process.env.REACT_APP_API_URL;
 
-const API = process.env.REACT_APP_SOCKET_URL;
 
 function ManageNotes() {
   const [notes, setNotes] = useState([]);
@@ -19,7 +19,7 @@ function ManageNotes() {
   const fetchNotes = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API}/api/notes/get`);
+      const res = await API.get("/api/notes/get");
       setNotes(res.data);
     } catch (error) {
       console.error("Error fetching notes:", error);
@@ -54,7 +54,7 @@ function ManageNotes() {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete these notes?")) {
       try {
-        await axios.delete(`${API}/api/notes/delete/${id}`);
+        await API.delete(`/api/notes/delete/${id}`);
         fetchNotes();
       } catch (error) {
         alert("Failed to delete notes");
@@ -63,7 +63,7 @@ function ManageNotes() {
   };
 
   const previewNote = (id) => {
-    window.open(`${API}/api/notes/view/${id}`, '_blank');
+    window.open(`${BASE_URL}/api/notes/view/${id}`, "_blank");
   };
   
 

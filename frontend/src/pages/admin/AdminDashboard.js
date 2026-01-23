@@ -13,8 +13,7 @@ import {
   Mail,
 } from "lucide-react";
 
-// Line 23 (or wherever the const API is defined)
-const API = process.env.REACT_APP_SOCKET_URL;
+import API from "../../api";
 // This will be: https://campusconnect-bmrw.onrender.com
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -42,7 +41,7 @@ function AdminDashboard() {
   // Fetch real data
   useEffect(() => {
     fetchAllData();
-  }, [fetchAllData]);
+  }, []);
   
 
   const fetchAllData = async () => {
@@ -65,17 +64,10 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
   
-      const response = await fetch(`${API}/api/admin/users`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await API.get("/api/admin/users");
+      const data = res.data;
+
   
-      if (!response.ok) {
-        throw new Error("Failed to fetch users");
-      }
-  
-      const data = await response.json();
       setUsers(data);
       return data;
     } catch (error) {
@@ -87,9 +79,9 @@ function AdminDashboard() {
 
   const fetchPYQsData = async () => {
     try {
-      const response = await fetch(`${API}/api/pyq/get`);
-      const data = await response.json();
-      return data;
+      const res = await API.get("/api/pyq/get");
+return res.data;
+
     } catch (error) {
       console.error("Error fetching PYQs:", error);
       return [];
@@ -98,9 +90,9 @@ function AdminDashboard() {
 
   const fetchNotesData = async () => {
     try {
-      const response = await fetch(`${API}/api/notes/get`);
-      const data = await response.json();
-      return data;
+      const res = await API.get("/api/notes/get");
+return res.data;
+
     } catch (error) {
       console.error("Error fetching Notes:", error);
       return [];
@@ -112,20 +104,14 @@ function AdminDashboard() {
       const token = localStorage.getItem("token");
   
       const [pyqsRes, notesRes] = await Promise.all([
-        fetch(`${API}/api/pyq/pending`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }),
-        fetch(`${API}/api/notes/pending`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }),
+        API.get("/api/pyq/pending"),
+        API.get("/api/notes/pending"),
       ]);
+      
   
-      const pendingPYQs = await pyqsRes.json();
-      const pendingNotes = await notesRes.json();
+      const pendingPYQs = pyqsRes.data;
+const pendingNotes = notesRes.data;
+
   
       return { pendingPYQs, pendingNotes };
     } catch (error) {
@@ -171,15 +157,9 @@ function AdminDashboard() {
     if (!window.confirm('Are you sure you want to ban/unban this user?')) return;
     
     try {
-      const response = await fetch(`${API}/api/users/${userId}/ban`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ action: 'toggle' })
-      });
+      const response = await API.put(`/api/users/${userId}/ban`, { action: "toggle" });
       
-      if (response.ok) {
+      if (response.status === 200) {
         // Update local state
         setUsers(users.map(user => 
           user._id === userId ? { ...user, isBanned: !user.isBanned } : user
@@ -208,11 +188,9 @@ function AdminDashboard() {
     if (!window.confirm(`Are you sure you want to delete ${userToDelete.name}? This action cannot be undone.`)) return;
     
     try {
-      const response = await fetch(`${API}/api/users/${userId}`, {
-        method: 'DELETE',
-      });
+      const response = await API.delete(`/api/users/${userId}`);
       
-      if (response.ok) {
+      if (response.status === 200) {
         setUsers(users.filter(user => user._id !== userId));
         calculateStats();
         alert('User deleted successfully');

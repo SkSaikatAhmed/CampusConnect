@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 
-const API = process.env.REACT_APP_SOCKET_URL;
-// This will be: https://campusconnect-bmrw.onrender.com
+import API from "../../api";
 function AdminUpload({ type }) {
   const [programs, setPrograms] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -34,14 +32,14 @@ function AdminUpload({ type }) {
 
   /* ---------- FETCH META ---------- */
   useEffect(() => {
-    axios.get(`${API}/api/meta/PROGRAM`).then(r => setPrograms(r.data));
-    axios.get(`${API}/api/meta/DEPARTMENT`).then(r => setDepartments(r.data));
-    axios.get(`${API}/api/meta/SUBJECT`).then(r => setSubjects(r.data));
+    API.get("/api/meta/PROGRAM").then(r => setPrograms(r.data));
+    API.get("/api/meta/DEPARTMENT").then(r => setDepartments(r.data));
+    API.get("/api/meta/SUBJECT").then(r => setSubjects(r.data));
   }, []);
 
   useEffect(() => {
     if (form.program === "MTECH" && form.department) {
-      axios.get(`${API}/api/meta/BRANCH`, {
+      API.get("/api/meta/BRANCH", {
         params: { program: "MTECH", department: form.department },
       }).then(r => setBranches(r.data));
     } else {
@@ -56,15 +54,16 @@ function AdminUpload({ type }) {
 
     setIsLoading(true);
     try {
-      await axios.post(`${API}/api/meta`, {
+      await API.post("/api/meta", {
         type: metaType,
         value: newValue.trim(),
         ...extra,
       });
 
-      const res = await axios.get(`${API}/api/meta/${metaType}`, {
+      const res = await API.get(`/api/meta/${metaType}`, {
         params: extra,
       });
+      
 
       if (metaType === "PROGRAM") setPrograms(res.data);
       if (metaType === "DEPARTMENT") setDepartments(res.data);
@@ -114,12 +113,13 @@ function AdminUpload({ type }) {
       Object.keys(form).forEach(k => data.append(k, form[k]));
       data.append("file", file);
 
-      await axios.post(`${API}/api/${type}/upload`, data, {
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(percentCompleted);
-        }
+      await API.post(`/api/${type}/upload`, data, {
+        onUploadProgress: (e) => {
+          const percent = Math.round((e.loaded * 100) / e.total);
+          setUploadProgress(percent);
+        },
       });
+      
 
       clearInterval(progressInterval);
       setUploadProgress(100);

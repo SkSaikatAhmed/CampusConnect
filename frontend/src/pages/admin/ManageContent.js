@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
-const API = process.env.REACT_APP_SOCKET_URL;
+import API from "../../api";
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 function ManageContent() {
   const [pyqs, setPyqs] = useState([]);
@@ -18,7 +18,7 @@ function ManageContent() {
   const fetchPYQs = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API}/api/pyq/get`);
+      const res = await API.get("/api/pyq/get");
       setPyqs(res.data);
     } catch (error) {
       console.error("Error fetching PYQs:", error);
@@ -54,7 +54,7 @@ function ManageContent() {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this PYQ?")) {
       try {
-        await axios.delete(`${API}/api/pyq/delete/${id}`);
+        await API.delete(`/api/pyq/delete/${id}`);
         fetchPYQs();
       } catch (error) {
         alert("Failed to delete PYQ");
@@ -63,7 +63,7 @@ function ManageContent() {
   };
 
   const previewPYQ = (id) => {
-    window.open(`${API}/api/pyq/view/${id}`, '_blank');
+    window.open(`${BASE_URL}/api/pyq/view/${id}`, "_blank");
   };
   
 
