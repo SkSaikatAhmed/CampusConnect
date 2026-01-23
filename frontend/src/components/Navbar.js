@@ -179,15 +179,18 @@ const getUserFromStorage = () => {
             
             {/* Logo */}
             <div className="flex items-center">
-              <Link to="/" className="flex items-center space-x-2">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500">
-                  <Sparkles className="h-6 w-6 text-white" />
-                </div>
-                <span className="text-2xl font-bold text-gray-900">
-                  Campus<span className="text-blue-600">Connect</span>
-                </span>
-              </Link>
-            </div>
+  <Link to="/" className="flex items-center space-x-3">
+    <img
+      src="/logo192.png"
+      alt="MNNIT Allahabad"
+      className="h-10 w-10 object-contain rounded-lg bg-white p-1 shadow"
+    />
+    <span className="text-2xl font-bold text-gray-900">
+      Campus<span className="text-blue-600">Connect</span>
+    </span>
+  </Link>
+</div>
+
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-1">
