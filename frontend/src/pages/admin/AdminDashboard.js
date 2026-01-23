@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 // Line 23 (or wherever the const API is defined)
-const API = process.env.REACT_APP_SOCKET_URL || "http://localhost:5000";
+const API = process.env.REACT_APP_SOCKET_URL;
 // This will be: https://campusconnect-bmrw.onrender.com
 function AdminDashboard() {
   const navigate = useNavigate();

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
 import { 
   Search, 
@@ -19,7 +18,8 @@ import {
   X
 } from "lucide-react";
 
-const API = process.env.REACT_APP_SOCKET_URL || "http://localhost:5000";
+import API from "../api";
+const BASE_URL = process.env.REACT_APP_API_URL;
 // This will be: https://campusconnect-bmrw.onrender.com
 
 const Button = ({ children, className = "", variant = "default", size = "default", ...props }) => {
@@ -90,20 +90,7 @@ function PYQ() {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Function to handle download
-  const handleDownload = (fileUrl, fileName) => {
-    // Create a temporary anchor element
-    const link = document.createElement('a');
-    link.href = `${API}${fileUrl}`;
-    
-    // Extract filename from URL or use provided filename
-    const filename = fileName || fileUrl.split('/').pop() || 'pyq.pdf';
-    link.download = filename;
-    
-    // Append to body, click, and remove
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+
 
   // Fetch initial data and all PYQs on component mount
   useEffect(() => {
@@ -111,10 +98,12 @@ function PYQ() {
       try {
         // Fetch meta data
         const [programsRes, departmentsRes, subjectsRes, pyqsRes] = await Promise.all([
-          axios.get(`${API}/api/meta/PROGRAM`),
-          axios.get(`${API}/api/meta/DEPARTMENT`),
-          axios.get(`${API}/api/meta/SUBJECT`),
-          axios.get(`${API}/api/pyq/filter`) // Fetch all PYQs initially
+          API.get("/api/meta/PROGRAM"),
+ API.get("/api/meta/DEPARTMENT"),
+API.get("/api/meta/SUBJECT"),
+API.get("/api/pyq/filter")
+
+           // Fetch all PYQs initially
         ]);
 
         setPrograms(programsRes.data);
@@ -144,7 +133,7 @@ function PYQ() {
   // Fetch branches when MTECH and department selected
   useEffect(() => {
     if (filters.program === "MTECH" && filters.department) {
-      axios.get(`${API}/api/meta/BRANCH`, {
+      API.get("/api/meta/BRANCH", {
         params: { program: "MTECH", department: filters.department }
       }).then(r => setBranches(r.data));
     } else {
@@ -203,7 +192,7 @@ function PYQ() {
   const fetchPYQs = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API}/api/pyq/filter`, { params: filters });
+      API.get("/api/pyq/filter", { params: filters });
       const filteredData = res.data;
       
       // Apply search filter if there's a search query
@@ -247,7 +236,7 @@ function PYQ() {
     setFilters({});
     setSearchQuery(""); // Clear search query
     // Fetch all PYQs when clearing filters
-    axios.get(`${API}/api/pyq/filter`).then(res => {
+    API.get("/api/pyq/filter").then(res => {
       setPyqs(res.data);
       setAllPyqs(res.data);
       const total = res.data.length;
@@ -269,7 +258,7 @@ function PYQ() {
     // If clearing a filter, fetch updated data immediately
     if (!value) {
       const { [key]: removed, ...remainingFilters } = newFilters;
-      axios.get(`${API}/api/pyq/filter`, { params: remainingFilters }).then(res => {
+      API.get("/api/pyq/filter", { params: remainingFilters }).then(res => {
         let finalData = res.data;
         
         // Apply search filter if there's a search query
@@ -648,7 +637,7 @@ function PYQ() {
                         {/* Action Buttons */}
                         <div className="flex space-x-3">
                         <a
-  href={`${API}/api/pyq/view/${p._id}`}
+  href={`${BASE_URL}/api/pyq/view/${p._id}`}
   target="_blank"
   rel="noreferrer"
   className="flex-1"
@@ -659,7 +648,7 @@ function PYQ() {
 <Button
   variant="outline"
   className="w-full"
-  onClick={() => window.open(`${API}/api/pyq/view/${p._id}`, "_blank")}
+  onClick={() => window.open(`${BASE_URL}/api/pyq/view/${p._id}`, "_blank")}
 >
   <Eye className="h-4 w-4 mr-2" />
   Preview
@@ -672,7 +661,7 @@ function PYQ() {
 <Button
   className="flex-1 w-full"
   onClick={() =>
-    window.open(`${API}/api/pyq/download/${p._id}`, "_blank")
+    window.open(`${BASE_URL}/api/pyq/download/${p._id}`, "_blank")
   }
   >
   <Download className="h-4 w-4 mr-2" />

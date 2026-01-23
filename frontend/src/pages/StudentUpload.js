@@ -19,7 +19,7 @@ import {
   Award
 } from "lucide-react";
 
-const API = process.env.REACT_APP_SOCKET_URL || "http://localhost:5000";
+const API = process.env.REACT_APP_SOCKET_URL;
 // This will be: https://campusconnect-bmrw.onrender.com
 const Button = ({ children, className = "", variant = "default", size = "default", ...props }) => {
   const baseStyles = "inline-flex items-center justify-center whitespace-nowrap rounded-lg font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:pointer-events-none disabled:opacity-50";

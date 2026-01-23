@@ -10,13 +10,14 @@ import { MdEmojiEmotions } from "react-icons/md";
 import { FiMoreHorizontal } from "react-icons/fi";
 import "./Home.css";
 import { useNavigate } from "react-router-dom";
-
-const API = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
-const socket = io(process.env.REACT_APP_SOCKET_URL || "http://localhost:5000", {
+import API_INSTANCE from "../api"; 
+const socket = io(process.env.REACT_APP_API_URL, {
   auth: {
     token: localStorage.getItem("token"),
   },
+  transports: ["websocket", "polling"],
 });
+
 
 const CATEGORIES = [
   "GENERAL",
@@ -40,9 +41,7 @@ const REACTIONS = [
   { type: "angry", label: "Angry", icon: "😠", color: "#E41E3F", emoji: "😠" },
 ];
 
-const authHeaders = () => ({
-  Authorization: `Bearer ${localStorage.getItem("token")}`,
-});
+
 
 function Home() {
   const [image, setImage] = useState(null);
@@ -85,8 +84,16 @@ function Home() {
         ? `${API}/posts?category=${category}&page=${pageNum}&limit=10`
         : `${API}/posts?page=${pageNum}&limit=10`;
 
-      const res = await fetch(url);
-      const data = await res.json();
+        // add at top
+
+        const res = await API_INSTANCE.get(
+          category
+            ? `/api/posts?category=${category}&page=${pageNum}&limit=10`
+            : `/api/posts?page=${pageNum}&limit=10`
+        );
+        
+        const data = res.data;
+        
 
       if (!data.length) {
         setHasMore(false);
@@ -222,11 +229,8 @@ function Home() {
     if (link) formData.append("link", link);
     if (image) formData.append("image", image);
 
-    await fetch(`${API}/posts`, {
-      method: "POST",
-      headers: authHeaders(),
-      body: formData,
-    });
+    await API_INSTANCE.post("/api/posts", formData);
+
 
     setContent("");
     setLink("");
@@ -256,7 +260,7 @@ function Home() {
   
         // remove user from all
         ["like", "love", "sad", "angry"].forEach(r => {
-          reactions[r] = reactions[r].filter(
+          reactions[r] = (reactions[r] || []).filter(
             id => id !== user._id
           );
         });
@@ -269,14 +273,10 @@ function Home() {
       })
     );
   
-    await fetch(`${API}/posts/${postId}/react`, {
-      method: "POST",
-      headers: {
-        ...authHeaders(),
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ type: finalType }),
+    await API_INSTANCE.post(`/api/posts/${postId}/react`, {
+      type: finalType,
     });
+    
   };
   
 
@@ -305,8 +305,9 @@ function Home() {
   const loadComments = async (postId) => {
     socket.emit("join-post", postId);
 
-    const res = await fetch(`${API}/comments/${postId}`);
-    const data = await res.json();
+    const res = await API_INSTANCE.get(`/api/comments/${postId}`);
+const data = res.data;
+
     setComments(prev => ({ ...prev, [postId]: data }));
   };
 
@@ -316,17 +317,11 @@ function Home() {
       return;
     }
 
-    await fetch(`${API}/comments`, {
-      method: "POST",
-      headers: {
-        ...authHeaders(),
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        postId,
-        text: commentText[postId],
-      }),
+    await API_INSTANCE.post("/api/comments", {
+      postId,
+      text: commentText[postId],
     });
+    
 
     setCommentText(prev => ({ ...prev, [postId]: "" }));
   };

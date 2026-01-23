@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const API = process.env.REACT_APP_SOCKET_URL || "http://localhost:5000";
+const API = process.env.REACT_APP_SOCKET_URL;
 const authHeader = () => ({
   headers: {
     Authorization: `Bearer ${localStorage.getItem("token")}`,
