@@ -131,3 +131,18 @@ exports.studentUploadPYQ = async (req, res) => {
   }
 };
 
+/* DELETE PYQ (ADMIN) */
+exports.deletePYQ = async (req, res) => {
+  try {
+    const pyq = await PYQ.findByIdAndDelete(req.params.id);
+
+    if (!pyq) {
+      return res.status(404).json({ message: "PYQ not found" });
+    }
+
+    res.json({ message: "PYQ deleted successfully" });
+  } catch (err) {
+    console.error("DELETE PYQ ERROR:", err);
+    res.status(500).json({ message: "Failed to delete PYQ" });
+  }
+};

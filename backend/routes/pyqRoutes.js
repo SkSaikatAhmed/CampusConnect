@@ -107,5 +107,11 @@ router.get("/download/:id", async (req, res) => {
   }
 });
 
+router.delete(
+  "/delete/:id",
+  authMiddleware,
+  adminMiddleware,
+  deletePYQ
+);
 
 module.exports = router;

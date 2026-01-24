@@ -106,5 +106,11 @@ router.get("/download/:id", async (req, res) => {
     res.status(500).send("Download failed");
   }
 });
+router.delete(
+  "/delete/:id",
+  authMiddleware,
+  adminMiddleware,
+  deleteNote
+);
 
 module.exports = router;

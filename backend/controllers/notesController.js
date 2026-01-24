@@ -93,3 +93,18 @@ exports.studentUploadNotes = async (req, res) => {
     }
   };
   
+/* DELETE NOTE (ADMIN) */
+exports.deleteNote = async (req, res) => {
+  try {
+    const note = await NOTES.findByIdAndDelete(req.params.id);
+
+    if (!note) {
+      return res.status(404).json({ message: "Note not found" });
+    }
+
+    res.json({ message: "Note deleted successfully" });
+  } catch (err) {
+    console.error("DELETE NOTE ERROR:", err);
+    res.status(500).json({ message: "Failed to delete note" });
+  }
+};
