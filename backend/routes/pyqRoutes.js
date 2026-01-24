@@ -94,15 +94,11 @@ router.get("/download/:id", async (req, res) => {
       responseType: "stream",
     });
 
-    const filename = pyq.subject
-      ? `${pyq.subject.replace(/\s+/g, "_")}_PYQ.pdf`
-      : "pyq.pdf";
-
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${filename}"`
-    );
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${pyq.subject || "pyq"}.pdf"`
+      );
 
     response.data.pipe(res);
   } catch (err) {
