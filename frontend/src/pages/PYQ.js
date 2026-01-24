@@ -284,6 +284,7 @@ const filteredData = res.data;
       });
     }
   };
+// Add this in your map function or after fetching data
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
@@ -594,7 +595,11 @@ const filteredData = res.data;
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {pyqs.map(p => (
+                  {pyqs.map(p => {
+                    console.log("PYQ data structure:", p);
+                    console.log("File URL:", p.fileUrl);
+                    return (
+                    
                     <Card key={p._id} className="group hover:shadow-2xl transition-all duration-300">
                       <div className="p-6">
                         {/* Header */}
@@ -674,8 +679,8 @@ const filteredData = res.data;
                           </div>
                         </div>
                       </div>
-                    </Card>
-                  ))}
+                    </Card>);
+})}
                 </div>
 
                 {/* Pagination/Info */}
