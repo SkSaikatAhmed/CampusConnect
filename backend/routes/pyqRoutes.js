@@ -4,7 +4,7 @@ const express = require("express");
 const router = express.Router();
 const upload = require("../middleware/upload");
 const PYQ = require("../models/PYQModel");
-const { protect } = require("../middleware/authMiddleware");
+const { protect, allowRoles } = require("../middleware/authMiddleware");
 const { uploadPYQ, getAllPYQ, studentUploadPYQ } = require("../controllers/pyqController");
 
 // Uploads
@@ -109,9 +109,10 @@ router.get("/download/:id", async (req, res) => {
 
 router.delete(
   "/delete/:id",
-  authMiddleware,
-  adminMiddleware,
+  protect,
+  allowRoles("admin"),
   deletePYQ
 );
+
 
 module.exports = router;

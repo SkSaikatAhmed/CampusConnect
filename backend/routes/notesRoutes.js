@@ -4,7 +4,7 @@ const express = require("express");
 const router = express.Router();
 const upload = require("../middleware/upload");
 const NOTES = require("../models/NotesModel");
-const { protect } = require("../middleware/authMiddleware");
+const { protect, allowRoles  } = require("../middleware/authMiddleware");
 const {
   uploadNotes,
   getAllNotes,
@@ -108,9 +108,10 @@ router.get("/download/:id", async (req, res) => {
 });
 router.delete(
   "/delete/:id",
-  authMiddleware,
-  adminMiddleware,
+  protect,
+  allowRoles("admin"),
   deleteNote
 );
+
 
 module.exports = router;
