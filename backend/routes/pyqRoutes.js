@@ -62,40 +62,54 @@ router.get("/filter", async (req, res) => {
   res.json(pyqs);
 });
 
-// 🔴 Replace the existing /view/:id route with this:
+// ✅ VIEW / PREVIEW PYQ (INLINE PDF)
 router.get("/view/:id", async (req, res) => {
   try {
     const pyq = await PYQ.findById(req.params.id);
-    if (!pyq) return res.status(404).send("PYQ not found");
+    if (!pyq) {
+      return res.status(404).send("PYQ not found");
+    }
 
-    // Redirect directly to Cloudinary URL for inline viewing
-    res.redirect(pyq.fileUrl);
-  } catch (err) {
-    console.error("PYQ VIEW ERROR:", err.message);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "inline");
+
+    const response = await axios.get(pyq.fileUrl, {
+      responseType: "stream",
+    });
+
+    response.data.pipe(res);
+  } catch (error) {
+    console.error("PYQ VIEW ERROR:", error.message);
     res.status(500).send("Unable to preview PYQ");
   }
 });
 
-// 🔴 Replace the existing /download/:id route with this:
+// ⬇️ DOWNLOAD PYQ (FORCED DOWNLOAD)
 router.get("/download/:id", async (req, res) => {
   try {
     const pyq = await PYQ.findById(req.params.id);
     if (!pyq) return res.status(404).send("PYQ not found");
 
-    // Get the filename from the URL or use subject name
-    const filename = pyq.subject 
-      ? `${pyq.subject.replace(/\s+/g, '_')}_PYQ.pdf`
+    const response = await axios.get(pyq.fileUrl, {
+      responseType: "stream",
+    });
+
+    const filename = pyq.subject
+      ? `${pyq.subject.replace(/\s+/g, "_")}_PYQ.pdf`
       : "pyq.pdf";
-    
-    // Set headers for forced download
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    
-    // Redirect to Cloudinary URL for download
-    res.redirect(pyq.fileUrl);
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${filename}"`
+    );
+
+    response.data.pipe(res);
   } catch (err) {
     console.error("PYQ DOWNLOAD ERROR:", err.message);
     res.status(500).send("Download failed");
   }
 });
+
 
 module.exports = router;
