@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "../api";
+import API from "../../api";
 import { Link } from "react-router-dom";
 
 function AdminAddStudent({ onClose, onSuccess }) {
