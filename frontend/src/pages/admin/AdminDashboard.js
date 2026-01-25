@@ -15,6 +15,12 @@ import {
 
 import API from "../../api";
 // This will be: https://campusconnect-bmrw.onrender.com
+import AddAdminModal from "./AddAdminModal";
+import AdminAddStudent from "./AdminAddStudent";
+
+const token = localStorage.getItem("token");
+const myRole = token ? JSON.parse(atob(token.split(".")[1])).role : null;
+
 function AdminDashboard() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
@@ -234,7 +240,8 @@ const pendingNotes = notesRes.data;
       day: 'numeric'
     });
   };
-
+ 
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex">
 
@@ -344,7 +351,24 @@ const pendingNotes = notesRes.data;
                   </h2>
                   <p className="text-sm text-gray-500 mt-1">Manage all registered users</p>
                 </div>
-                
+                {["ADMIN", "SUPER_ADMIN"].includes(myRole) && (
+  <button
+    onClick={() => setShowAddStudent(true)}
+    className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+  >
+    Add Student
+  </button>
+)}
+
+{myRole === "SUPER_ADMIN" && (
+  <button
+    onClick={() => setShowAddAdmin(true)}
+    className="bg-purple-600 text-white px-4 py-2 rounded-lg"
+  >
+    Add Admin
+  </button>
+)}
+
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -470,6 +494,11 @@ const pendingNotes = notesRes.data;
                             >
                               <Eye className="w-4 h-4" />
                             </button>
+                            {(
+  user.role === "STUDENT" ||
+  (myRole === "SUPER_ADMIN" && user.role === "ADMIN")
+) && (
+
                             <button
                               onClick={() => handleBanUser(user._id)}
                               className={`p-2 rounded-lg transition-all ${
@@ -481,7 +510,11 @@ const pendingNotes = notesRes.data;
                             >
                               {user.isBanned ? <UserCheck className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
                             </button>
-                            {user.role !== 'SUPER_ADMIN' && (
+)}
+                            {(
+  user.role === "STUDENT" ||
+  (myRole === "SUPER_ADMIN" && user.role === "ADMIN")
+) && (
                               <button
                                 onClick={() => handleDeleteUser(user._id)}
                                 className="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-red-50 hover:text-red-600 transition-all"
@@ -641,6 +674,21 @@ const pendingNotes = notesRes.data;
           </div>
         </div>
       )}
+
+{showAddStudent && (
+  <AdminAddStudent
+    onClose={() => setShowAddStudent(false)}
+    onSuccess={fetchAllData}
+  />
+)}
+
+{showAddAdmin && (
+  <AddAdminModal
+    onClose={() => setShowAddAdmin(false)}
+    onSuccess={fetchAllData}
+  />
+)}
+
     </div>
   );
 }

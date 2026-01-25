@@ -157,4 +157,19 @@ router.get("/dashboard-stats", protect, allowRoles("ADMIN", "SUPER_ADMIN"), asyn
   }
 });
 
+router.post(
+  "/create-student",
+  protect,
+  allowRoles("ADMIN", "SUPER_ADMIN"),
+  createStudentByAdmin
+);
+
+router.post(
+  "/create-admin",
+  protect,
+  allowRoles("SUPER_ADMIN"),
+  createAdmin
+);
+
+
 module.exports = router;

@@ -111,7 +111,7 @@ router.get("/download/:id", async (req, res) => {
 router.delete(
   "/delete/:id",
   protect,
-  allowRoles("admin"),
+  allowRoles("ADMIN", "SUPER_ADMIN"),
   deleteNote
 );
 
