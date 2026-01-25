@@ -5,7 +5,7 @@ const router = express.Router();
 const upload = require("../middleware/upload");
 const PYQ = require("../models/PYQModel");
 const { protect, allowRoles } = require("../middleware/authMiddleware");
-const { uploadPYQ, getAllPYQ, studentUploadPYQ } = require("../controllers/pyqController");
+const { uploadPYQ, getAllPYQ, studentUploadPYQ,deletePYQ, } = require("../controllers/pyqController");
 
 // Uploads
 router.post("/upload", upload.single("file"), uploadPYQ);

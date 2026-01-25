@@ -9,6 +9,8 @@ const {
   uploadNotes,
   getAllNotes,
   studentUploadNotes,
+  deleteNote,
+
 } = require("../controllers/notesController");
 
 // Uploads
