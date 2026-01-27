@@ -4,12 +4,11 @@ const User = require("../models/UserModel");
 const PYQ = require("../models/PYQModel");
 const Notes = require("../models/NotesModel");
 const { protect, allowRoles } = require("../middleware/authMiddleware");
+const {
+  createStudentByAdmin,
+  createAdmin,
+} = require("../controllers/userController");
 
-// CREATE ADMIN (SUPER ONLY)
-router.post("/create-admin", protect, allowRoles("SUPER_ADMIN"), async (req, res) => {
-  const admin = await User.create({ ...req.body, role: "ADMIN" });
-  res.json(admin);
-});
 
 // REMOVE USER (ADMIN + SUPER)
 router.delete("/remove-user/:id", protect, allowRoles("ADMIN", "SUPER_ADMIN"), async (req, res) => {
