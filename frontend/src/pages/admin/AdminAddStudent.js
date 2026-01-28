@@ -51,6 +51,15 @@ function AdminAddStudent({ onClose, onSuccess }) {
   };
 
   return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[90vh] overflow-y-auto p-8 relative">
+      
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 text-gray-500 hover:text-black text-xl"
+      >
+        ✕
+      </button>
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
@@ -327,6 +336,9 @@ function AdminAddStudent({ onClose, onSuccess }) {
     
       </div>
     </div>
+    </div>
+  </div>
+
   );
 }
 
