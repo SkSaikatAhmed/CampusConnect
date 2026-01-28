@@ -24,7 +24,10 @@ exports.createStudentByAdmin = async (req, res) => {
       ...req.body,
       role: "STUDENT",
     };
-
+    
+    if (req.file) {
+      data.profilePhoto = req.file.path; // or req.file.secure_url for Cloudinary
+    }
     const student = await User.create(data);
 
     res.status(201).json({

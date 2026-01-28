@@ -156,12 +156,16 @@ router.get("/dashboard-stats", protect, allowRoles("ADMIN", "SUPER_ADMIN"), asyn
   }
 });
 
+const profileUpload = require("../middleware/profileUpload");
+
 router.post(
   "/create-student",
   protect,
   allowRoles("ADMIN", "SUPER_ADMIN"),
+  profileUpload.single("profilePhoto"),
   createStudentByAdmin
 );
+
 
 router.post(
   "/create-admin",
