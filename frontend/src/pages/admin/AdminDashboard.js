@@ -166,7 +166,7 @@ const pendingNotes = notesRes.data;
     if (!window.confirm('Are you sure you want to ban/unban this user?')) return;
     
     try {
-      const response = await API.put(`/api/users/${userId}/ban`, { action: "toggle" });
+      const response = await API.put(`/api/admin/users/${userId}/ban`, { action: "toggle" });
       
       if (response.status === 200) {
         // Update local state
