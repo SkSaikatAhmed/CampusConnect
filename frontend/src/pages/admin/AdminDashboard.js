@@ -18,10 +18,13 @@ import API from "../../api";
 import AddAdminModal from "./AddAdminModal";
 import AdminAddStudent from "./AdminAddStudent";
 
+
 const token = localStorage.getItem("token");
 const myRole = token ? JSON.parse(atob(token.split(".")[1])).role : null;
 
 function AdminDashboard() {
+  const [showAddStudent, setShowAddStudent] = useState(false);
+const [showAddAdmin, setShowAddAdmin] = useState(false);
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({

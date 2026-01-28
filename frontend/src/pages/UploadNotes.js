@@ -185,9 +185,10 @@ function UploadNotes() {
   /* META */
   useEffect(() => {
     API.get("/api/meta/PROGRAM").then(r => setPrograms(r.data));
-    API.get(`${API}/api/meta/DEPARTMENT`).then(r => setDepartments(r.data));
-    API.get(`${API}/api/meta/SUBJECT`).then(r => setSubjects(r.data));
+    API.get("/api/meta/DEPARTMENT").then(r => setDepartments(r.data));
+    API.get("/api/meta/SUBJECT").then(r => setSubjects(r.data));
   }, []);
+  
 
   useEffect(() => {
     if (form.program === "MTECH" && form.department) {
