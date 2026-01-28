@@ -22,7 +22,6 @@ exports.createStudentByAdmin = async (req, res) => {
   try {
     const data = {
       ...req.body,
-      password: await bcrypt.hash(req.body.password, 10),
       role: "STUDENT",
     };
 
@@ -33,30 +32,36 @@ exports.createStudentByAdmin = async (req, res) => {
       student,
     });
   } catch (err) {
+    console.error("Create student error:", err);
     res.status(500).json({ error: err.message });
   }
 };
 
 exports.createAdmin = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { name, email, registrationNo, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email and password required" });
+    if (!name || !email || !registrationNo || !password) {
+      return res.status(400).json({
+        error: "Name, registration number, email and password are required",
+      });
     }
+    
 
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ error: "User already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
 
     const admin = await User.create({
+      name,
       email,
-      password: hashedPassword,
+      registrationNo,
+      password, // DO NOT hash here
       role: "ADMIN",
     });
+    
 
     res.status(201).json({
       message: "Admin created successfully",

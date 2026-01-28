@@ -2,27 +2,33 @@ import { useState } from "react";
 import API from "../../api";
 
 const AddAdminModal = ({ onClose, onSuccess }) => {
+  const [name, setName] = useState("");
+  const [registrationNo, setRegistrationNo] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleAddAdmin = async () => {
-    if (!email || !password) {
-      alert("Email and password are required");
+    if (!name || !registrationNo || !email || !password) {
+      alert("All fields are required");
       return;
     }
 
     try {
       setLoading(true);
       await API.post("/api/admin/create-admin", {
+        name,
+        registrationNo,
         email,
         password,
       });
+
       alert("Admin created successfully");
       onSuccess();
       onClose();
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to create admin");
+      console.error("Add admin error:", err);
+      alert(err.response?.data?.error || "Failed to create admin");
     } finally {
       setLoading(false);
     }
@@ -32,6 +38,22 @@ const AddAdminModal = ({ onClose, onSuccess }) => {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-xl w-full max-w-md">
         <h2 className="text-xl font-bold mb-4">Add Admin</h2>
+
+        <input
+          type="text"
+          placeholder="Admin Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full border p-2 rounded mb-3"
+        />
+
+        <input
+          type="text"
+          placeholder="Registration No (e.g. ADM2025_001)"
+          value={registrationNo}
+          onChange={(e) => setRegistrationNo(e.target.value)}
+          className="w-full border p-2 rounded mb-3"
+        />
 
         <input
           type="email"
@@ -56,6 +78,7 @@ const AddAdminModal = ({ onClose, onSuccess }) => {
           >
             Cancel
           </button>
+
           <button
             onClick={handleAddAdmin}
             disabled={loading}
