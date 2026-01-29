@@ -20,15 +20,38 @@ exports.getUserById = async (req, res) => {
 
 exports.createStudentByAdmin = async (req, res) => {
   try {
-    const data = {
-      ...req.body,
+    const {
+      name,
+      email,
+      password,
+      registrationNo,
+      program,
+      department,
+      branch,
+    } = req.body;
+
+    if (!name || !email || !password || !registrationNo) {
+      return res.status(400).json({
+        error: "Name, email, password and registration number are required",
+      });
+    }
+
+    const studentData = {
+      name,
+      email,
+      password, // 🔑 let schema pre-save hook hash it
+      registrationNo,
+      program,
+      department,
+      branch,
       role: "STUDENT",
     };
-    
+
     if (req.file) {
-      data.profilePhoto = req.file.path; // or req.file.secure_url for Cloudinary
+      studentData.profilePhoto = req.file.path;
     }
-    const student = await User.create(data);
+
+    const student = await User.create(studentData);
 
     res.status(201).json({
       message: "Student created successfully",
@@ -39,6 +62,7 @@ exports.createStudentByAdmin = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 exports.createAdmin = async (req, res) => {
   try {
