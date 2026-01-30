@@ -1,104 +1,76 @@
-const axios = require("axios");
-
 const express = require("express");
+const axios = require("axios");
 const router = express.Router();
+
 const upload = require("../middleware/upload");
 const PYQ = require("../models/PYQModel");
 const { protect, allowRoles } = require("../middleware/authMiddleware");
-const { uploadPYQ, getAllPYQ, studentUploadPYQ,deletePYQ, } = require("../controllers/pyqController");
 
-// Uploads
-router.post("/upload", upload.single("file"), uploadPYQ);
-router.post("/student-upload", protect, upload.single("file"), studentUploadPYQ);
-router.get("/get", getAllPYQ);
+const {
+  uploadPYQByAdmin,
+  uploadPYQByStudent,
+  filterPYQ,
+  getPendingPYQ,
+  approvePYQ,
+  deletePYQ,
+} = require("../controllers/pyqController");
 
-// ✅ STUDENT COUNT (APPROVED ONLY)
-router.get("/my/count", protect, async (req, res) => {
-  const count = await PYQ.countDocuments({
-    createdBy: req.user._id,
-    status: "APPROVED",
-  });
-  res.json({ count });
-});
+// ================= ADMIN UPLOAD =================
+router.post(
+  "/upload",
+  protect,
+  allowRoles("ADMIN", "SUPER_ADMIN"),
+  upload.single("file"),
+  uploadPYQByAdmin
+);
 
-// ADMIN – Pending
-router.get("/pending", protect, async (req, res) => {
-  const data = await PYQ.find({ status: "PENDING" })
-    .populate("createdBy", "name registrationNo email");
-  res.json(data);
-});
+// ================= STUDENT UPLOAD =================
+router.post(
+  "/student-upload",
+  protect,
+  upload.single("file"),
+  uploadPYQByStudent
+);
 
-// ADMIN – Approve
-router.put("/approve/:id", protect, async (req, res) => {
-  await PYQ.findByIdAndUpdate(req.params.id, {
-    status: "APPROVED",
-    rejectionReason: null,
-  });
-  res.json({ message: "Approved" });
-});
+// ================= USER FETCH (APPROVED ONLY) =================
+router.get("/filter", filterPYQ);
 
-// ADMIN – Reject
-router.put("/reject/:id", protect, async (req, res) => {
-  await PYQ.findByIdAndUpdate(req.params.id, {
-    status: "REJECTED",
-    rejectionReason: req.body.reason || "Not suitable",
-  });
-  res.json({ message: "Rejected" });
-});
+// ================= ADMIN – PENDING =================
+router.get("/pending", protect, getPendingPYQ);
 
-// Filter
-router.get("/filter", async (req, res) => {
-  const query = { status: "APPROVED" };
+// ================= ADMIN – APPROVE =================
+router.put("/approve/:id", protect, approvePYQ);
 
-  const { program, department, branch, subject, semester, year } = req.query;
-  if (program) query.program = program;
-  if (department) query.department = department;
-  if (branch) query.branch = branch;
-  if (subject) query.subject = subject;
-  if (semester) query.semester = Number(semester);
-  if (year) query.year = Number(year);
-
-  const pyqs = await PYQ.find(query).sort({ year: -1 });
-  res.json(pyqs);
-});
-
-// ✅ VIEW / PREVIEW PYQ (INLINE PDF)
+// ================= VIEW / PREVIEW PYQ =================
 router.get("/view/:id", async (req, res) => {
   try {
     const pyq = await PYQ.findById(req.params.id);
-    if (!pyq) {
-      return res.status(404).send("PYQ not found");
-    }
+    if (!pyq) return res.status(404).send("PYQ not found");
+
+    const response = await axios.get(pyq.fileUrl, { responseType: "stream" });
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "inline");
-
-    const response = await axios.get(pyq.fileUrl, {
-      responseType: "stream",
-    });
-
     response.data.pipe(res);
-  } catch (error) {
-    console.error("PYQ VIEW ERROR:", error.message);
+  } catch (err) {
+    console.error("PYQ VIEW ERROR:", err.message);
     res.status(500).send("Unable to preview PYQ");
   }
 });
 
-// ⬇️ DOWNLOAD PYQ (FORCED DOWNLOAD)
+// ================= DOWNLOAD PYQ =================
 router.get("/download/:id", async (req, res) => {
   try {
     const pyq = await PYQ.findById(req.params.id);
     if (!pyq) return res.status(404).send("PYQ not found");
 
-    const response = await axios.get(pyq.fileUrl, {
-      responseType: "stream",
-    });
+    const response = await axios.get(pyq.fileUrl, { responseType: "stream" });
 
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename="${pyq.subject || "pyq"}.pdf"`
-      );
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${pyq.subject || "pyq"}.pdf"`
+    );
 
     response.data.pipe(res);
   } catch (err) {
@@ -107,12 +79,12 @@ router.get("/download/:id", async (req, res) => {
   }
 });
 
+// ================= DELETE =================
 router.delete(
   "/delete/:id",
   protect,
   allowRoles("ADMIN", "SUPER_ADMIN"),
   deletePYQ
 );
-
 
 module.exports = router;

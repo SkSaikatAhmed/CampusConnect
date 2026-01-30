@@ -1,100 +1,70 @@
-const axios = require("axios");
-
 const express = require("express");
+const axios = require("axios");
 const router = express.Router();
+
 const upload = require("../middleware/upload");
 const NOTES = require("../models/NotesModel");
-const { protect, allowRoles  } = require("../middleware/authMiddleware");
-const {
-  uploadNotes,
-  getAllNotes,
-  studentUploadNotes,
-  deleteNote,
+const { protect, allowRoles } = require("../middleware/authMiddleware");
 
+const {
+  uploadNotesByAdmin,
+  uploadNotesByStudent,
+  filterNotes,
+  getPendingNotes,
+  approveNote,
+  deleteNote,
 } = require("../controllers/notesController");
 
-// Uploads
-router.post("/upload", upload.single("file"), uploadNotes);
-router.post("/student-upload", protect, upload.single("file"), studentUploadNotes);
-router.get("/get", getAllNotes);
+// ================= ADMIN UPLOAD =================
+router.post(
+  "/upload",
+  protect,
+  allowRoles("ADMIN", "SUPER_ADMIN"),
+  upload.single("file"),
+  uploadNotesByAdmin
+);
 
-// ✅ STUDENT COUNT (APPROVED ONLY)
-router.get("/my/count", protect, async (req, res) => {
-  const count = await NOTES.countDocuments({
-    createdBy: req.user._id,
-    status: "APPROVED",
-  });
-  res.json({ count });
-});
+// ================= STUDENT UPLOAD =================
+router.post(
+  "/student-upload",
+  protect,
+  upload.single("file"),
+  uploadNotesByStudent
+);
 
-// ✅ ADMIN – Pending Notes
-router.get("/pending", protect, async (req, res) => {
-  const data = await NOTES.find({ status: "PENDING" })
-    .populate("createdBy", "name registrationNo email");
-  res.json(data);
-});
+// ================= USER FETCH (APPROVED ONLY) =================
+router.get("/filter", filterNotes);
 
-// ADMIN – Approve
-router.put("/approve/:id", protect, async (req, res) => {
-  await NOTES.findByIdAndUpdate(req.params.id, {
-    status: "APPROVED",
-    rejectionReason: null,
-  });
-  res.json({ message: "Approved" });
-});
+// ================= ADMIN – PENDING =================
+router.get("/pending", protect, getPendingNotes);
 
-// ADMIN – Reject
-router.put("/reject/:id", protect, async (req, res) => {
-  await NOTES.findByIdAndUpdate(req.params.id, {
-    status: "REJECTED",
-    rejectionReason: req.body.reason || "Not suitable",
-  });
-  res.json({ message: "Rejected" });
-});
+// ================= ADMIN – APPROVE =================
+router.put("/approve/:id", protect, approveNote);
 
-// Filter (Approved only)
-router.get("/filter", async (req, res) => {
-  const query = { status: "APPROVED" };
-
-  Object.keys(req.query).forEach(k => {
-    if (req.query[k]) {
-      query[k] = isNaN(req.query[k]) ? req.query[k] : Number(req.query[k]);
-    }
-  });
-
-  const data = await NOTES.find(query).sort({ year: -1 });
-  res.json(data);
-});
-// ✅ VIEW / PREVIEW NOTES (PDF INLINE)
+// ================= VIEW / PREVIEW NOTES =================
 router.get("/view/:id", async (req, res) => {
   try {
     const note = await NOTES.findById(req.params.id);
-    if (!note) {
-      return res.status(404).send("Notes not found");
-    }
+    if (!note) return res.status(404).send("Notes not found");
+
+    const response = await axios.get(note.fileUrl, { responseType: "stream" });
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "inline");
-
-    const response = await axios.get(note.fileUrl, {
-      responseType: "stream",
-    });
-
     response.data.pipe(res);
-  } catch (error) {
-    console.error("NOTES VIEW ERROR:", error.message);
+  } catch (err) {
+    console.error("NOTES VIEW ERROR:", err.message);
     res.status(500).send("Unable to preview notes");
   }
 });
-// ⬇️ DOWNLOAD NOTES (FORCED DOWNLOAD)
+
+// ================= DOWNLOAD NOTES =================
 router.get("/download/:id", async (req, res) => {
   try {
     const note = await NOTES.findById(req.params.id);
     if (!note) return res.status(404).send("Notes not found");
 
-    const response = await axios.get(note.fileUrl, {
-      responseType: "stream",
-    });
+    const response = await axios.get(note.fileUrl, { responseType: "stream" });
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
@@ -108,12 +78,13 @@ router.get("/download/:id", async (req, res) => {
     res.status(500).send("Download failed");
   }
 });
+
+// ================= DELETE =================
 router.delete(
   "/delete/:id",
   protect,
   allowRoles("ADMIN", "SUPER_ADMIN"),
   deleteNote
 );
-
 
 module.exports = router;
