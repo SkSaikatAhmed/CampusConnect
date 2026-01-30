@@ -618,6 +618,11 @@ const filteredData = res.data;
                         </div>
 
                         {/* Details */}
+                        <span className="text-sm text-gray-500">
+  Uploaded by <b>{pyq.createdBy?.name}</b>
+  {pyq.createdBy?.registrationNo && ` (${pyq.createdBy.registrationNo})`}
+</span>
+
                         <div className="space-y-3 mb-6">
                           <div className="flex items-center text-sm text-gray-600">
                             <GraduationCap className="h-4 w-4 mr-2 text-blue-500" />
