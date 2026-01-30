@@ -636,10 +636,20 @@ API.get("/api/meta/BRANCH"),
 
                         {/* Details */}
                         <div className="space-y-3 mb-6">
-                        <span className="text-sm text-gray-500">
-  Uploaded by <b>{note.createdBy?.name}</b>
-  {note.createdBy?.registrationNo && ` (${note.createdBy.registrationNo})`}
-</span>
+                        {note.createdBy && (
+  <p className="text-xs text-gray-500 mt-1">
+    Contributed by: 
+    <span className="font-semibold text-emerald-600 ml-1">
+      {note.createdBy.name}
+    </span>
+    {note.createdBy.registrationNo && (
+      <span className="ml-1">
+        ({note.createdBy.registrationNo})
+      </span>
+    )}
+  </p>
+)}
+
 
                           <div className="flex items-center text-sm text-gray-600">
                             <GraduationCap className="h-4 w-4 mr-2 text-emerald-500" />
