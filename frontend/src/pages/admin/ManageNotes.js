@@ -19,7 +19,7 @@ function ManageNotes() {
   const fetchNotes = async () => {
     try {
       setLoading(true);
-      const res = await API.get("/api/notes/get");
+      const res = await API.get("/api/notes/filter");
       setNotes(res.data);
     } catch (error) {
       console.error("Error fetching notes:", error);

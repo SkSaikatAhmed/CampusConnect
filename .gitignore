@@ -8,3 +8,6 @@ backend/uploads/
 /generated/prisma
 
 /generated/prisma
+
+# Android TWA / Play Store build
+campusconnect-twa/

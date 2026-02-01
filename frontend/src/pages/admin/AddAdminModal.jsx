@@ -7,6 +7,7 @@ const AddAdminModal = ({ onClose, onSuccess }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const token = localStorage.getItem("token");
 
   const handleAddAdmin = async () => {
     if (!name || !registrationNo || !email || !password) {
@@ -17,6 +18,9 @@ const AddAdminModal = ({ onClose, onSuccess }) => {
     try {
       setLoading(true);
       await API.post("/api/admin/create-admin", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         name,
         registrationNo,
         email,

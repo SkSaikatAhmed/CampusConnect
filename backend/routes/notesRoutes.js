@@ -51,7 +51,7 @@ router.get("/view/:id", async (req, res) => {
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "inline");
-    response.data.pipe(res);
+    return res.redirect(note.fileUrl);
   } catch (err) {
     console.error("NOTES VIEW ERROR:", err.message);
     res.status(500).send("Unable to preview notes");

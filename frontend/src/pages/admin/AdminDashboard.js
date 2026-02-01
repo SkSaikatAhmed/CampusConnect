@@ -88,7 +88,7 @@ const [showAddAdmin, setShowAddAdmin] = useState(false);
 
   const fetchPYQsData = async () => {
     try {
-      const res = await API.get("/api/pyq/get");
+      const res = await API.get("/api/pyq/filter");
 return res.data;
 
     } catch (error) {
@@ -99,7 +99,7 @@ return res.data;
 
   const fetchNotesData = async () => {
     try {
-      const res = await API.get("/api/notes/get");
+      const res = await API.get("/api/notes/filter");
 return res.data;
 
     } catch (error) {
