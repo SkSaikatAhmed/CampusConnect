@@ -1,5 +1,6 @@
 const PYQ = require("../models/PYQModel");
 const cloudinary = require("cloudinary").v2;
+const streamifier = require("streamifier");
 require("dotenv").config();
 
 cloudinary.config({
@@ -8,17 +9,36 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const uploadToCloudinary = (buffer, folder) =>
+  new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { resource_type: "raw", folder },
+      (error, result) => {
+        if (result) resolve(result);
+        else reject(error);
+      }
+    );
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
 
 // ================= ADMIN UPLOAD =================
 exports.uploadPYQByAdmin = async (req, res) => {
   try {
+    if (!req.file) return res.status(400).json({ message: "PDF required" });
+
+    const result = await uploadToCloudinary(
+      req.file.buffer,
+      "campusconnect/pyq"
+    );
+
     const pyq = await PYQ.create({
       program: req.body.program,
       department: req.body.department,
       subject: req.body.subject,
-      year: req.body.year,
+      year: req.body.year ? Number(req.body.year) : null,
       description: req.body.description,
-      fileUrl: req.file.path,
+      fileUrl: result.secure_url,
+      filePublicId: result.public_id,
       uploadedBy: "ADMIN",
       status: "APPROVED",
       createdBy: req.user._id,
@@ -33,13 +53,21 @@ exports.uploadPYQByAdmin = async (req, res) => {
 // ================= STUDENT UPLOAD =================
 exports.uploadPYQByStudent = async (req, res) => {
   try {
+    if (!req.file) return res.status(400).json({ message: "PDF required" });
+
+    const result = await uploadToCloudinary(
+      req.file.buffer,
+      "campusconnect/pyq"
+    );
+
     const pyq = await PYQ.create({
       program: req.body.program,
       department: req.body.department,
       subject: req.body.subject,
-      year: req.body.year,
+      year: req.body.year ? Number(req.body.year) : null,
       description: req.body.description,
-      fileUrl: req.file.path,
+      fileUrl: result.secure_url,
+      filePublicId: result.public_id,
       uploadedBy: "STUDENT",
       status: "PENDING",
       createdBy: req.user._id,
@@ -51,68 +79,39 @@ exports.uploadPYQByStudent = async (req, res) => {
   }
 };
 
-// ================= USER FETCH (FIX APPLIED HERE) =================
+// ================= FILTER =================
 exports.filterPYQ = async (req, res) => {
-  try {
-    const query = { status: "APPROVED", ...req.query };
-
-    const pyqs = await PYQ.find(query)
-      .populate("createdBy", "name registrationNo")
-      .sort({ createdAt: -1 });
-
-    res.json(pyqs);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// ================= ADMIN FETCH =================
-exports.getAllPYQ = async (req, res) => {
-  try {
-    const pyqs = await PYQ.find()
-      .populate("createdBy", "name email registrationNo")
-      .sort({ createdAt: -1 });
-
-    res.json(pyqs);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  const pyqs = await PYQ.find({ status: "APPROVED", ...req.query })
+    .populate("createdBy", "name registrationNo")
+    .sort({ createdAt: -1 });
+  res.json(pyqs);
 };
 
 // ================= PENDING =================
 exports.getPendingPYQ = async (req, res) => {
-  try {
-    const pyqs = await PYQ.find({ status: "PENDING" })
-      .populate("createdBy", "name email registrationNo")
-      .sort({ createdAt: -1 });
-
-    res.json(pyqs);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  const pyqs = await PYQ.find({ status: "PENDING" })
+    .populate("createdBy", "name email registrationNo")
+    .sort({ createdAt: -1 });
+  res.json(pyqs);
 };
 
 // ================= APPROVE =================
 exports.approvePYQ = async (req, res) => {
-  try {
-    await PYQ.findByIdAndUpdate(req.params.id, { status: "APPROVED" });
-    res.json({ message: "PYQ approved" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  await PYQ.findByIdAndUpdate(req.params.id, { status: "APPROVED" });
+  res.json({ message: "PYQ approved" });
 };
 
 // ================= DELETE =================
 exports.deletePYQ = async (req, res) => {
-  try {
-    const pyq = await PYQ.findById(req.params.id);
-    if (!pyq) return res.status(404).json({ error: "Not found" });
+  const pyq = await PYQ.findById(req.params.id);
+  if (!pyq) return res.status(404).json({ error: "Not found" });
 
-    await cloudinary.uploader.destroy(pyq.fileUrl);
-    await PYQ.findByIdAndDelete(req.params.id);
-
-    res.json({ message: "PYQ deleted" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  if (pyq.filePublicId) {
+    await cloudinary.uploader.destroy(pyq.filePublicId, {
+      resource_type: "raw",
+    });
   }
+
+  await PYQ.findByIdAndDelete(req.params.id);
+  res.json({ message: "PYQ deleted" });
 };

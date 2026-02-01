@@ -1,5 +1,6 @@
 const NOTES = require("../models/NotesModel");
 const cloudinary = require("cloudinary").v2;
+const streamifier = require("streamifier");
 require("dotenv").config();
 
 cloudinary.config({
@@ -8,17 +9,36 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const uploadToCloudinary = (buffer, folder) =>
+  new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { resource_type: "raw", folder },
+      (error, result) => {
+        if (result) resolve(result);
+        else reject(error);
+      }
+    );
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
 
 // ================= ADMIN UPLOAD =================
 exports.uploadNotesByAdmin = async (req, res) => {
   try {
+    if (!req.file) return res.status(400).json({ message: "PDF required" });
+
+    const result = await uploadToCloudinary(
+      req.file.buffer,
+      "campusconnect/notes"
+    );
+
     const note = await NOTES.create({
       program: req.body.program,
       department: req.body.department,
       subject: req.body.subject,
-      semester: req.body.semester,
+      semester: req.body.semester ? Number(req.body.semester) : null,
       description: req.body.description,
-      fileUrl: req.file.path,
+      fileUrl: result.secure_url,
+      filePublicId: result.public_id,
       uploadedBy: "ADMIN",
       status: "APPROVED",
       createdBy: req.user._id,
@@ -33,13 +53,21 @@ exports.uploadNotesByAdmin = async (req, res) => {
 // ================= STUDENT UPLOAD =================
 exports.uploadNotesByStudent = async (req, res) => {
   try {
+    if (!req.file) return res.status(400).json({ message: "PDF required" });
+
+    const result = await uploadToCloudinary(
+      req.file.buffer,
+      "campusconnect/notes"
+    );
+
     const note = await NOTES.create({
       program: req.body.program,
       department: req.body.department,
       subject: req.body.subject,
-      semester: req.body.semester,
+      semester: req.body.semester ? Number(req.body.semester) : null,
       description: req.body.description,
-      fileUrl: req.file.path,
+      fileUrl: result.secure_url,
+      filePublicId: result.public_id,
       uploadedBy: "STUDENT",
       status: "PENDING",
       createdBy: req.user._id,
@@ -51,68 +79,39 @@ exports.uploadNotesByStudent = async (req, res) => {
   }
 };
 
-// ================= USER FETCH (FIX APPLIED HERE) =================
+// ================= FILTER =================
 exports.filterNotes = async (req, res) => {
-  try {
-    const query = { status: "APPROVED", ...req.query };
-
-    const data = await NOTES.find(query)
-      .populate("createdBy", "name registrationNo")
-      .sort({ createdAt: -1 });
-
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// ================= ADMIN FETCH =================
-exports.getAllNotes = async (req, res) => {
-  try {
-    const notes = await NOTES.find()
-      .populate("createdBy", "name email registrationNo")
-      .sort({ createdAt: -1 });
-
-    res.json(notes);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  const notes = await NOTES.find({ status: "APPROVED", ...req.query })
+    .populate("createdBy", "name registrationNo")
+    .sort({ createdAt: -1 });
+  res.json(notes);
 };
 
 // ================= PENDING =================
 exports.getPendingNotes = async (req, res) => {
-  try {
-    const notes = await NOTES.find({ status: "PENDING" })
-      .populate("createdBy", "name email registrationNo")
-      .sort({ createdAt: -1 });
-
-    res.json(notes);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  const notes = await NOTES.find({ status: "PENDING" })
+    .populate("createdBy", "name email registrationNo")
+    .sort({ createdAt: -1 });
+  res.json(notes);
 };
 
 // ================= APPROVE =================
 exports.approveNote = async (req, res) => {
-  try {
-    await NOTES.findByIdAndUpdate(req.params.id, { status: "APPROVED" });
-    res.json({ message: "Note approved" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  await NOTES.findByIdAndUpdate(req.params.id, { status: "APPROVED" });
+  res.json({ message: "Note approved" });
 };
 
 // ================= DELETE =================
 exports.deleteNote = async (req, res) => {
-  try {
-    const note = await NOTES.findById(req.params.id);
-    if (!note) return res.status(404).json({ error: "Not found" });
+  const note = await NOTES.findById(req.params.id);
+  if (!note) return res.status(404).json({ error: "Not found" });
 
-    await cloudinary.uploader.destroy(note.fileUrl);
-    await NOTES.findByIdAndDelete(req.params.id);
-
-    res.json({ message: "Note deleted" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  if (note.filePublicId) {
+    await cloudinary.uploader.destroy(note.filePublicId, {
+      resource_type: "raw",
+    });
   }
+
+  await NOTES.findByIdAndDelete(req.params.id);
+  res.json({ message: "Note deleted" });
 };
